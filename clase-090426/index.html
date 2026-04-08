@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programación de Dispositivos Móviles</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family: 'Segoe UI', system-ui, sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 44px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2,.reveal h3 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.25em; }
+.reveal h2 { font-size:1.25em; color:#1a1a1a; }
+.reveal p  { font-size:0.68em; line-height:1.6; color:#444; margin:0 0 0.3em; }
+
+/* TAG PILL */
+.tag { display:inline-block; font-size:0.34em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.35em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+/* FLOW */
+.flow { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin:0.4em 0; }
+.fb { font-size:0.57em; font-weight:600; padding:5px 11px; border-radius:6px; white-space:nowrap; }
+.fb-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.fb-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.fb-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.fb-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.fb-gray   { background:#f0f0f0; color:#555; }
+.arrow { font-size:0.9em; color:#bbb; }
+
+/* CARDS */
+.two-col   { display:grid; grid-template-columns:1fr 1fr;       gap:9px;  margin:0.4em 0; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr;   gap:8px;  margin:0.4em 0; }
+.four-col  { display:grid; grid-template-columns:repeat(4,1fr); gap:8px;  margin:0.4em 0; }
+.card { background:#f7f7f7; border-radius:8px; padding:0.55em 0.8em; text-align:left; }
+.card strong { display:block; font-size:0.65em; font-weight:700; color:#111; margin-bottom:2px; }
+.card p { font-size:0.6em !important; color:#555; margin:0; line-height:1.5; }
+.sum-card { border:1px solid #e8e8e8; border-radius:8px; padding:0.55em 0.8em; text-align:left; background:#fff; }
+.sum-card .st { font-size:0.63em; font-weight:700; margin-bottom:3px; }
+.sum-card p { font-size:0.58em !important; color:#555; margin:0; line-height:1.45; }
+
+/* KEY IDEA */
+.key-idea { padding:0.45em 0.9em; border-radius:8px; border-left:4px solid; font-size:0.62em !important; font-weight:600; line-height:1.45; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+
+code { font-family:'Fira Code',monospace; font-size:0.88em; background:#f0f0f0; padding:1px 5px; border-radius:4px; color:#333; }
+
+/* LIFECYCLE DIAGRAM */
+.lc-wrap { display:flex; gap:10px; align-items:stretch; margin:0.4em 0; }
+.lc-states { display:flex; flex-direction:column; gap:6px; flex:1; }
+.lc-state { border-radius:7px; padding:6px 10px; font-size:0.58em; font-weight:700; text-align:center; }
+.lc-focus  { background:#C8E6C9; color:#1B5E20; }
+.lc-vis    { background:#FFE0B2; color:#E65100; }
+.lc-bg     { background:#FFCDD2; color:#B71C1C; }
+.lc-dead   { background:#F0F0F0; color:#555; }
+.lc-methods { display:flex; flex-direction:column; justify-content:space-around; flex:1.6; gap:4px; }
+.lc-method { display:flex; align-items:flex-start; gap:6px; }
+.lc-method code { font-size:0.72em; white-space:nowrap; background:var(--purple-bg); color:var(--purple-dark); padding:2px 7px; border-radius:4px; }
+.lc-method p { font-size:0.58em !important; color:#555; margin:0; line-height:1.4; }
+
+/* EVENTS */
+.event-list { margin:0.4em 0; }
+.event-row  { display:flex; align-items:flex-start; gap:9px; margin-bottom:0.35em; }
+.dot        { width:7px; height:7px; border-radius:50%; margin-top:4px; flex-shrink:0; }
+.dot-amber  { background:var(--amber-mid); }
+.dot-blue   { background:var(--blue-mid); }
+.event-row p { font-size:0.65em !important; margin:0; color:#444; line-height:1.5; }
+
+/* BLOCK DIVIDER */
+.block-divider { text-align:center; }
+.block-divider h1 { font-size:1.7em; margin:0.1em 0; }
+.block-divider .sub { font-size:0.72em; color:#888; margin-bottom:0.9em; }
+.chips { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:0.6em 0; }
+.chip { font-size:0.42em; padding:4px 13px; border-radius:20px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+.blk-num { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:0.5em; font-weight:700; margin-bottom:0.5em; }
+.blk-1 { background:var(--blue-bg); color:var(--blue-dark); }
+.blk-2 { background:var(--purple-bg); color:var(--purple-dark); }
+.blk-3 { background:var(--teal-bg); color:var(--teal-dark); }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══════════════════════════════
+     PORTADA GENERAL
+     ══════════════════════════════ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.42em">Sección 02 · 01/2026</span>
+  <h1 style="font-size:1.85em; margin:0.1em 0">Programación de<br>Dispositivos Móviles</h1>
+  <p style="font-size:0.65em; color:#888; margin:0.4em 0 0.9em">"El software es como la poesía; debe ser escrito con cuidado y pasión."</p>
+  <div class="chips">
+    <span class="chip tag-blue">Bloque 1 · Ciclo de vida</span>
+    <span class="chip tag-purple">Bloque 2 · Estado &amp; Composición</span>
+    <span class="chip tag-teal">Bloque 3 · Caso práctico</span>
+  </div>
+  <p style="font-size:0.48em; color:#bbb; margin-top:1em">Docente: Alvaro García · Kotlin &amp; Jetpack Compose</p>
+</section>
+
+<!-- ══════════════════════════════
+     BLOQUE 1 — CICLO DE VIDA
+     ══════════════════════════════ -->
+<section data-background-color="#ffffff" class="block-divider">
+  <div class="blk-num blk-1">1</div>
+  <h1 style="font-size:1.6em; margin:0.1em 0">Ciclo de vida de una Activity</h1>
+  <p class="sub">Qué ocurre desde que una pantalla nace hasta que muere</p>
+  <div class="flow" style="justify-content:center">
+    <div class="fb fb-blue">onCreate</div><span class="arrow">→</span>
+    <div class="fb fb-blue">onStart</div><span class="arrow">→</span>
+    <div class="fb fb-blue">onResume</div><span class="arrow">→</span>
+    <div class="fb fb-gray">onPause</div><span class="arrow">→</span>
+    <div class="fb fb-gray">onStop</div><span class="arrow">→</span>
+    <div class="fb fb-gray">onDestroy</div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Bloque 1 · Ciclo de vida</span>
+  <h2>¿Qué es la Activity y su ciclo de vida?</h2>
+  <p>Una <strong>Activity</strong> es el punto de entrada para que el usuario interactúe con la app. Durante su existencia, pasa por una serie de estados — eso es su <strong>ciclo de vida</strong>.</p>
+  <div class="two-col" style="margin-top:0.4em">
+    <div class="card">
+      <strong>¿Por qué importa?</strong>
+      <p>Si no manejamos bien el ciclo de vida, la app puede crashear, perder datos del usuario, consumir batería en segundo plano o comportarse de forma impredecible.</p>
+    </div>
+    <div class="card">
+      <strong>Modern Android Development</strong>
+      <p>Hoy una sola Activity puede mostrar múltiples pantallas intercambiándolas con Navigation Compose. Ya no es 1 Activity = 1 pantalla.</p>
+    </div>
+  </div>
+  <div class="flow" style="margin-top:0.5em">
+    <div class="fb fb-blue">Activa &amp; visible</div><span class="arrow">↔</span>
+    <div class="fb fb-gray">Parcialmente visible</div><span class="arrow">↔</span>
+    <div class="fb fb-gray">En segundo plano</div><span class="arrow">↔</span>
+    <div class="fb fb-gray">Destruida</div>
+  </div>
+  <div class="key-idea key-blue">💡 El sistema Android puede destruir y recrear tu Activity en cualquier momento — debemos estar preparados.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Bloque 1 · Ciclo de vida</span>
+  <h2>Los 7 métodos del ciclo de vida</h2>
+  <div class="lc-wrap">
+    <div class="lc-states">
+      <div class="lc-state lc-focus">Resumed<br><span style="font-weight:400;font-size:0.85em">Activity tiene foco</span></div>
+      <div class="lc-state lc-vis">Started<br><span style="font-weight:400;font-size:0.85em">Activity es visible</span></div>
+      <div class="lc-state lc-bg">Created<br><span style="font-weight:400;font-size:0.85em">Activity en memoria</span></div>
+      <div class="lc-state lc-dead">Destroyed / Initialized</div>
+    </div>
+    <div class="lc-methods">
+      <div class="lc-method"><code>onCreate()</code><p>Se ejecuta una sola vez al crear la Activity. Aquí se infla la UI y se inicializa el ViewModel.</p></div>
+      <div class="lc-method"><code>onStart()</code><p>La Activity está a punto de hacerse visible. Aún no puede interactuar con el usuario.</p></div>
+      <div class="lc-method"><code>onResume()</code><p>La Activity tiene el foco. El usuario puede interactuar. Aquí vive la mayoría del tiempo.</p></div>
+      <div class="lc-method"><code>onPause()</code><p>Pierde el foco pero sigue visible (ej: un diálogo encima). Libera recursos que no necesita.</p></div>
+      <div class="lc-method"><code>onStop()</code><p>La Activity ya no es visible. Sigue en memoria. Detener operaciones costosas aquí.</p></div>
+      <div class="lc-method"><code>onDestroy()</code><p>La Activity es eliminada definitivamente. Última oportunidad para liberar recursos.</p></div>
+      <div class="lc-method"><code>onRestart()</code><p>Se ejecuta cuando una Activity en onStop() vuelve a primer plano en vez de recrearse.</p></div>
+    </div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Bloque 1 · Ciclo de vida</span>
+  <h2>Escenarios reales del ciclo de vida</h2>
+  <div class="three-col">
+    <div class="card" style="border-left:3px solid #185FA5">
+      <strong>Abrir la app</strong>
+      <p>onCreate → onStart → onResume<br>La Activity sube hasta Resumed y espera interacción del usuario.</p>
+    </div>
+    <div class="card" style="border-left:3px solid #E24B4A">
+      <strong>Rotar la pantalla</strong>
+      <p>onPause → onStop → onDestroy → onCreate → ...<br>Android <em>destruye y recrea</em> la Activity. El estado se pierde si no lo guardamos.</p>
+    </div>
+    <div class="card" style="border-left:3px solid #854F0B">
+      <strong>App a segundo plano</strong>
+      <p>onPause → onStop<br>El sistema puede matar el proceso si necesita memoria. Al volver: onRestart → onStart → onResume.</p>
+    </div>
+  </div>
+  <div class="key-idea key-blue" style="margin-top:0.5em">
+    💡 La rotación de pantalla es el escenario más común donde se pierde el estado — aquí es donde entra <code>rememberSaveable</code>.
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Bloque 1 · Ciclo de vida</span>
+  <h2>Registro con Log — depurando el ciclo de vida</h2>
+  <p>La clase <code>Log</code> nos permite escribir mensajes en el <strong>Logcat</strong> de Android Studio para observar en tiempo real qué métodos se ejecutan.</p>
+  <pre><code class="language-kotlin" style="font-size:0.65em; border-radius:8px">class MainActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d("MainActivity", "onCreate llamado")      // D = Debug
+    }
+
+    override fun onStart()   { super.onStart();   Log.d("MainActivity", "onStart llamado") }
+    override fun onResume()  { super.onResume();  Log.d("MainActivity", "onResume llamado") }
+    override fun onPause()   { super.onPause();   Log.d("MainActivity", "onPause llamado") }
+    override fun onStop()    { super.onStop();    Log.d("MainActivity", "onStop llamado") }
+    override fun onDestroy() { super.onDestroy(); Log.d("MainActivity", "onDestroy llamado") }
+}</code></pre>
+  <div class="two-col" style="margin-top:0.35em">
+    <div class="card"><strong>Log.d(tag, msg)</strong><p><strong>tag</strong>: identifica la clase (filtra en Logcat). <strong>msg</strong>: el mensaje que quieres ver. Usa <code>D</code> para debug.</p></div>
+    <div class="card"><strong>Niveles de Log</strong><p><code>Log.v</code> Verbose · <code>Log.d</code> Debug · <code>Log.i</code> Info · <code>Log.w</code> Warning · <code>Log.e</code> Error</p></div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Bloque 1 · Ciclo de vida</span>
+  <h2>¿Qué es SavedInstanceState?</h2>
+  <p>Es un objeto <code>Bundle</code> que Android usa para guardar y restaurar datos cuando la Activity se destruye y recrea — por rotación, cambio de configuración o porque el sistema necesita memoria.</p>
+  <div class="two-col" style="margin-top:0.35em">
+    <div class="card">
+      <strong>¿Cuándo actúa?</strong>
+      <p>Rotación de pantalla · App a segundo plano · Sistema mata el proceso · Cambio de idioma del sistema</p>
+    </div>
+    <div class="card">
+      <strong>¿Qué puede guardar?</strong>
+      <p>Tipos primitivos y <code>Parcelable</code>. No objetos grandes. Es un salvavidas para estado de IU, no una base de datos.</p>
+    </div>
+  </div>
+  <div class="flow" style="margin-top:0.45em">
+    <div class="fb fb-amber">Activity destruida</div><span class="arrow">→</span>
+    <div class="fb fb-amber">Bundle guardado</div><span class="arrow">→</span>
+    <div class="fb fb-teal">Activity recreada</div><span class="arrow">→</span>
+    <div class="fb fb-teal">Bundle restaurado</div>
+  </div>
+  <div class="key-idea key-teal">💡 En Compose, <code>rememberSaveable</code> usa SavedInstanceState internamente — no necesitas manejarlo a mano.</div>
+</section>
+
+<!-- ══════════════════════════════
+     BLOQUE 2 — ESTADO Y COMPOSICIÓN
+     ══════════════════════════════ -->
+<section data-background-color="#ffffff" class="block-divider">
+  <div class="blk-num blk-2">2</div>
+  <h1 style="font-size:1.6em; margin:0.1em 0">Estado &amp; Composición</h1>
+  <p class="sub">Cómo Jetpack Compose construye y actualiza la IU</p>
+  <div class="flow" style="justify-content:center">
+    <div class="fb fb-purple">Composición</div><span class="arrow">→</span>
+    <div class="fb fb-purple">Estado</div><span class="arrow">→</span>
+    <div class="fb fb-purple">Eventos</div><span class="arrow">→</span>
+    <div class="fb fb-purple">Recomposición</div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Bloque 2 · Compose</span>
+  <h2>Composición y recomposición</h2>
+  <p>La <strong>composición</strong> es la descripción de la IU que Compose construye al ejecutar tus funciones componibles. En la primera ejecución guarda ese árbol en un objeto <code>Composition</code>.</p>
+  <div class="flow">
+    <div class="fb fb-purple">Datos de entrada</div><span class="arrow">→</span>
+    <div class="fb fb-purple">Funciones componibles</div><span class="arrow">→</span>
+    <div class="fb fb-teal">Composition (IU)</div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <strong>Composición inicial</strong>
+      <p>Primera ejecución. Compose registra todos los componibles y construye el árbol de la IU.</p>
+    </div>
+    <div class="card">
+      <strong>Recomposición</strong>
+      <p>Ante un cambio de estado, Compose re-ejecuta <em>solo</em> los componibles afectados y actualiza la IU.</p>
+    </div>
+  </div>
+  <div class="key-idea key-purple">💡 La <code>Composition</code> solo puede crearse una vez y modificarse únicamente a través de la recomposición.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Bloque 2 · Compose</span>
+  <h2>Estado en Compose</h2>
+  <p>El <strong>estado</strong> es cualquier valor de la app que puede cambiar con el tiempo. Determina qué muestra la IU en un momento determinado.</p>
+  <div class="two-col">
+    <div class="card">
+      <strong>Ejemplos de estado</strong>
+      <p>Mensajes recientes de un chat · Foto de perfil del usuario · Posición de scroll en una lista</p>
+    </div>
+    <div class="card">
+      <strong>Tipos en Compose</strong>
+      <p><code>State&lt;T&gt;</code> — inmutable, solo lectura.<br><code>MutableState&lt;T&gt;</code> — mutable, permite escritura.</p>
+    </div>
+  </div>
+  <p style="margin-top:0.35em">Usa <code>mutableStateOf()</code> para crear un estado observable. Compose hará seguimiento y programará recomposición cuando cambie.</p>
+  <div class="flow">
+    <div class="fb fb-teal">mutableStateOf(valor)</div><span class="arrow">→</span>
+    <div class="fb fb-teal">Compose lo observa</div><span class="arrow">→</span>
+    <div class="fb fb-teal">Recomposición al cambiar</div>
+  </div>
+  <div class="key-idea key-teal">💡 El estado determina qué se muestra en la IU en un momento determinado.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Bloque 2 · Compose</span>
+  <h2>Eventos en Compose</h2>
+  <p>Si el estado describe <em>qué se muestra</em>, los <strong>eventos</strong> explican <em>por qué cambia</em>. Son entradas que disparan una actualización del estado.</p>
+  <div class="event-list">
+    <div class="event-row"><div class="dot dot-amber"></div><p><strong>Interacción del usuario —</strong> presionar un botón, escribir en un campo, hacer scroll.</p></div>
+    <div class="event-row"><div class="dot dot-blue"></div><p><strong>Factores externos —</strong> respuestas de red, datos de sensores, temporizadores.</p></div>
+  </div>
+  <div class="flow" style="margin-top:0.4em">
+    <div class="fb fb-amber">Evento ocurre</div><span class="arrow">→</span>
+    <div class="fb fb-amber">Estado se actualiza</div><span class="arrow">→</span>
+    <div class="fb fb-teal">IU se recompone</div>
+  </div>
+  <div class="key-idea key-amber">💡 El estado <em>es</em>. Los eventos <em>suceden</em>.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Bloque 2 · Resumen</span>
+  <h2>Todo conectado: el ciclo UDF</h2>
+  <div class="flow" style="justify-content:center">
+    <div class="fb fb-amber">Evento</div><span class="arrow">→</span>
+    <div class="fb fb-teal">Estado cambia</div><span class="arrow">→</span>
+    <div class="fb fb-purple">Recomposición</div><span class="arrow">→</span>
+    <div class="fb fb-purple">IU actualizada</div>
+  </div>
+  <div class="four-col">
+    <div class="sum-card"><div class="st" style="color:var(--purple-dark)">Composición</div><p>Árbol que Compose construye y mantiene. Solo se modifica por recomposición.</p></div>
+    <div class="sum-card"><div class="st" style="color:var(--teal-dark)">Estado</div><p>Valor que cambia en el tiempo. Se declara con <code>mutableStateOf()</code> para ser observado.</p></div>
+    <div class="sum-card"><div class="st" style="color:var(--amber-dark)">Eventos</div><p>Acciones del usuario o sistema que modifican el estado y desencadenan recomposición.</p></div>
+    <div class="sum-card"><div class="st" style="color:var(--blue-dark)">Recomposición</div><p>Re-ejecución automática y eficiente de solo los componibles afectados.</p></div>
+  </div>
+  <div class="key-idea key-blue">💡 UDF (Unidirectional Data Flow): los eventos fluyen hacia arriba, el estado fluye hacia abajo.</div>
+</section>
+
+<!-- ══════════════════════════════
+     BLOQUE 3 — CASO PRÁCTICO
+     ══════════════════════════════ -->
+<section data-background-color="#ffffff" class="block-divider">
+  <div class="blk-num blk-3">3</div>
+  <h1 style="font-size:1.6em; margin:0.1em 0">Caso práctico: Tip Calculator</h1>
+  <p class="sub">Evolución del estado en 4 iteraciones</p>
+  <div class="flow" style="justify-content:center">
+    <div class="fb fb-gray" style="opacity:.5">val</div><span class="arrow">→</span>
+    <div class="fb fb-gray" style="opacity:.65">mutableStateOf</div><span class="arrow">→</span>
+    <div class="fb fb-teal">remember</div><span class="arrow">→</span>
+    <div class="fb fb-teal">rememberSaveable</div>
+  </div>
+  <p style="font-size:0.55em; color:#bbb; margin-top:0.8em">Cada iteración soluciona un problema concreto de la anterior</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Bloque 3 · Iteración 1</span>
+  <h2>val amountInput = "0"</h2>
+  <p>Una variable <code>val</code> normal. Funciona para datos estáticos, pero <strong>Compose no la observa</strong> — nunca sabrá que cambió.</p>
+  <pre><code class="language-kotlin" style="font-size:0.62em; border-radius:8px">@Composable
+fun TipCalculator() {
+    val amountInput = "0"          // ❌ val: inmutable, Compose no la observa
+    val amount = amountInput.toDoubleOrNull() ?: 0.0
+    val tip = calculateTip(amount)
+
+    TextField(
+        value = amountInput,
+        onValueChange = { /* amountInput = it  ← error de compilación */ }
+    )
+}</code></pre>
+  <div class="two-col" style="margin-top:0.35em">
+    <div class="card" style="border-left:3px solid #E24B4A"><strong style="color:#A32D2D">❌ Problema</strong><p>No se puede reasignar. El campo de texto nunca actualiza su valor. La IU queda congelada.</p></div>
+    <div class="card" style="border-left:3px solid #0F6E56"><strong style="color:#085041">¿Qué necesitamos?</strong><p>Un valor que pueda cambiar <em>y</em> que Compose sepa que debe recomponer cuando cambie.</p></div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Bloque 3 · Iteración 2</span>
+  <h2>var amountInput = mutableStateOf("0")</h2>
+  <p>Ahora el valor es <strong>observable por Compose</strong>. Cuando cambia, programa una recomposición. Pero hay un problema oculto.</p>
+  <pre><code class="language-kotlin" style="font-size:0.62em; border-radius:8px">@Composable
+fun TipCalculator() {
+    var amountInput = mutableStateOf("0")  // ⚠️ se recrea en cada recomposición
+    val amount = amountInput.value.toDoubleOrNull() ?: 0.0
+
+    TextField(
+        value = amountInput.value,
+        onValueChange = { amountInput.value = it }   // dispara recomposición
+    )
+}</code></pre>
+  <div class="two-col" style="margin-top:0.35em">
+    <div class="card" style="border-left:3px solid #E24B4A"><strong style="color:#A32D2D">❌ Problema</strong><p>Cada recomposición <strong>recrea</strong> el objeto desde cero. El valor escrito por el usuario se pierde en cada recomposición.</p></div>
+    <div class="card" style="border-left:3px solid #0F6E56"><strong style="color:#085041">¿Qué necesitamos?</strong><p>Que el estado <em>sobreviva</em> a la recomposición y Compose recuerde su valor entre ejecuciones.</p></div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Bloque 3 · Iteración 3</span>
+  <h2>var amountInput by remember { mutableStateOf("") }</h2>
+  <p><code>remember</code> le dice a Compose que <strong>guarde el valor en la Composition</strong> y lo reutilice en vez de recrearlo en cada recomposición.</p>
+  <pre><code class="language-kotlin" style="font-size:0.62em; border-radius:8px">@Composable
+fun TipCalculator() {
+    var amountInput by remember { mutableStateOf("") }  // ✅ sobrevive a recomposición
+    val amount = amountInput.toDoubleOrNull() ?: 0.0
+    val tip = calculateTip(amount)
+
+    TextField(
+        value = amountInput,
+        onValueChange = { amountInput = it }   // sintaxis limpia con delegación 'by'
+    )
+}</code></pre>
+  <div class="two-col" style="margin-top:0.35em">
+    <div class="card" style="border-left:3px solid #3B6D11"><strong style="color:#27500A">✅ Resuelto</strong><p>El valor persiste entre recomposiciones. La delegación <code>by</code> evita escribir <code>.value</code> en cada acceso.</p></div>
+    <div class="card" style="border-left:3px solid #E24B4A"><strong style="color:#A32D2D">❌ Problema restante</strong><p>Si el sistema rota la pantalla o mata el proceso, el estado <strong>se pierde</strong> — solo vive en la Composition.</p></div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Bloque 3 · Iteración 4</span>
+  <h2>var amountInput by rememberSaveable { mutableStateOf("") }</h2>
+  <p><code>rememberSaveable</code> guarda el estado en el <strong>Bundle de Android (SavedInstanceState)</strong>, sobreviviendo a rotaciones y a la muerte del proceso.</p>
+  <pre><code class="language-kotlin" style="font-size:0.62em; border-radius:8px">@Composable
+fun TipCalculator() {
+    var amountInput by rememberSaveable { mutableStateOf("") }  // ✅ solución completa
+    val amount = amountInput.toDoubleOrNull() ?: 0.0
+    val tip = calculateTip(amount)
+
+    TextField(
+        value = amountInput,
+        onValueChange = { amountInput = it }
+    )
+}</code></pre>
+  <div class="two-col" style="margin-top:0.35em">
+    <div class="card" style="border-left:3px solid #3B6D11"><strong style="color:#27500A">✅ Sobrevive a recomposición</strong><p>Igual que <code>remember</code> — el valor persiste entre recomposiciones.</p></div>
+    <div class="card" style="border-left:3px solid #3B6D11"><strong style="color:#27500A">✅ Sobrevive a rotación</strong><p>Se guarda en el Bundle. Rotar la pantalla no borra lo que el usuario escribió.</p></div>
+  </div>
+  <div class="key-idea key-teal">💡 Regla práctica: usa <code>rememberSaveable</code> por defecto para estado de IU. Usa <code>remember</code> solo para objetos que no necesitan persistir entre cambios de configuración.</div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4,
+  plugins:[RevealHighlight]
+});
+</script>
+</body>
