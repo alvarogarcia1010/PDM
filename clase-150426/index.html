@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Review — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h2 { font-size:1.22em; color:#1a1a1a; }
+.reveal p  { font-size:0.66em; line-height:1.65; color:#444; margin:0 0 0.28em; }
+
+.tag { display:inline-block; font-size:0.33em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.42em 0.9em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.5; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+/* Prism overrides */
+.reveal pre {
+  margin:0; padding:0;
+  background:transparent;
+  box-shadow:none;
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+.reveal pre code.language-kotlin {
+  font-family:'Fira Code','Consolas',monospace !important;
+  font-size:0.46em !important;
+  line-height:1.45 !important;
+  border-radius:10px !important;
+  padding:10px 14px !important;
+  white-space:pre !important;
+  display:block;
+  text-align:left;
+  width:100%;
+  box-sizing:border-box;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+/* smaller font for longer code blocks */
+.reveal pre code.language-kotlin.sm {
+  font-size:0.42em !important;
+  line-height:1.4 !important;
+}
+/* Prism token colors — más vibrantes sobre fondo claro */
+.reveal pre code .token.keyword    { color:#7c3aed !important; font-weight:600; }
+.reveal pre code .token.function   { color:#0369a1 !important; }
+.reveal pre code .token.string     { color:#16a34a !important; }
+.reveal pre code .token.number     { color:#dc2626 !important; }
+.reveal pre code .token.boolean    { color:#dc2626 !important; }
+.reveal pre code .token.operator   { color:#64748b !important; }
+.reveal pre code .token.comment    { color:#94a3b8 !important; font-style:italic; }
+.reveal pre code .token.class-name { color:#b45309 !important; font-weight:600; }
+.reveal pre code .token.annotation { color:#9333ea !important; }
+.reveal pre code .token.punctuation{ color:#475569 !important; }
+.reveal pre code                   { color:#1e293b !important; }
+
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0.35em 0; align-items:start; overflow:hidden; }
+.two-col > * { min-width:0; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:0.35em 0; }
+.card { background:#f7f7f7; border-radius:8px; padding:0.55em 0.8em; }
+.card strong { display:block; font-size:0.64em; font-weight:700; color:#111; margin-bottom:3px; }
+.card p { font-size:0.59em !important; color:#555; margin:0; line-height:1.55; }
+
+.flow { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin:0.35em 0; }
+.fb { font-size:0.55em; font-weight:600; padding:5px 10px; border-radius:6px; white-space:nowrap; }
+.fb-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.fb-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.fb-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.fb-green  { background:var(--green-bg);  color:var(--green-dark); }
+.arrow { font-size:0.85em; color:#bbb; }
+
+.blk-num { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; font-size:0.48em; font-weight:700; margin-bottom:0.35em; }
+.ba-wrap  { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0.35em 0; align-items:start; overflow:hidden; }
+.ba-wrap > div { min-width:0; }
+.ba-label { font-size:0.6em; font-weight:700; margin-bottom:5px; }
+
+.row-item { display:flex; gap:10px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.45em 0.75em; }
+.row-item p { font-size:0.6em !important; margin:0; line-height:1.5; color:#333; }
+.badge-num { font-weight:700; font-size:0.58em; border-radius:5px; padding:2px 7px; flex-shrink:0; margin-top:1px; }
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- PORTADA -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <h1 style="font-size:1.8em; margin:0.1em 0">Code Review</h1>
+  <p style="font-size:0.68em; color:#888; margin-bottom:0.9em">Taller 1 · AndroidPedia · Buenas prácticas en Kotlin &amp; Compose</p>
+  <div class="flow" style="justify-content:center">
+    <div class="fb fb-purple">¿Qué es un code review?</div><span class="arrow">·</span>
+    <div class="fb fb-teal">Nombres y legibilidad</div><span class="arrow">·</span>
+    <div class="fb fb-teal">Estado y lógica</div><span class="arrow">·</span>
+    <div class="fb fb-amber">Composables reutilizables</div><span class="arrow">·</span>
+    <div class="fb fb-amber">Estructura de archivos</div>
+  </div>
+  <p style="font-size:0.44em; color:#bbb; margin-top:1.1em">Docente: Alvaro García · Kotlin &amp; Jetpack Compose</p>
+</section>
+
+<!-- ══ BLOQUE 1 ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--purple-bg);color:var(--purple-dark)">1</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">¿Qué es un Code Review?</h1>
+  <p style="font-size:0.63em; color:#888">La práctica más importante del desarrollo profesional</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Code Review · Definición</span>
+  <h2>¿Qué es y para qué sirve?</h2>
+  <p>Un <strong>code review</strong> es el proceso en el que uno o más developers leen y analizan el código de un compañero antes de que sea integrado al proyecto. No es para buscar errores — es para <strong>mejorar colectivamente</strong>.</p>
+  <div class="three-col" style="margin-top:0.45em">
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong>Encontrar bugs temprano</strong>
+      <p>Un error detectado en code review cuesta 10x menos que uno detectado en producción.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong>Compartir conocimiento</strong>
+      <p>El que revisa aprende del código. El que es revisado aprende de los comentarios.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong>Mantener estándares</strong>
+      <p>Asegura que todo el equipo escriba código con el mismo estilo y criterio.</p>
+    </div>
+  </div>
+  <div class="key-idea key-purple">💡 En empresas como Google, ningún código llega a producción sin pasar por al menos un code review. Es una habilidad tan importante como saber programar.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Code Review · Cómo hacerlo bien</span>
+  <h2>Reglas de un buen code review</h2>
+  <div class="two-col" style="gap:16px; margin-top:0.4em">
+    <div style="background:var(--red-bg); border-radius:10px; padding:0.7em 1em">
+      <p style="font-size:0.63em; font-weight:700; color:var(--red-mid); margin-bottom:0.5em">❌ Lo que NO se hace</p>
+      <div style="display:flex; flex-direction:column; gap:7px">
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">🚫</span><p style="font-size:0.6em !important; color:var(--red-dark); margin:0; line-height:1.5">Criticar a la persona — se revisa el código, no al developer</p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">🚫</span><p style="font-size:0.6em !important; color:var(--red-dark); margin:0; line-height:1.5">Decir "esto está mal" sin explicar por qué ni cómo mejorarlo</p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">🚫</span><p style="font-size:0.6em !important; color:var(--red-dark); margin:0; line-height:1.5">Ignorar lo que está bien — el feedback positivo también cuenta</p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">🚫</span><p style="font-size:0.6em !important; color:var(--red-dark); margin:0; line-height:1.5">Cambiar cosas por gusto personal sin razón técnica</p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">🚫</span><p style="font-size:0.6em !important; color:var(--red-dark); margin:0; line-height:1.5">Hacer el review de afán sin leer el código con calma</p></div>
+      </div>
+    </div>
+    <div style="background:var(--green-bg); border-radius:10px; padding:0.7em 1em">
+      <p style="font-size:0.63em; font-weight:700; color:var(--green-dark); margin-bottom:0.5em">✅ Lo que SÍ se hace</p>
+      <div style="display:flex; flex-direction:column; gap:7px">
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">✔</span><p style="font-size:0.6em !important; color:var(--green-dark); margin:0; line-height:1.5">Preguntar antes de asumir: <em>"¿Por qué decidiste hacerlo así?"</em></p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">✔</span><p style="font-size:0.6em !important; color:var(--green-dark); margin:0; line-height:1.5">Sugerir, no imponer: <em>"Podrías considerar..."</em></p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">✔</span><p style="font-size:0.6em !important; color:var(--green-dark); margin:0; line-height:1.5">Reconocer explícitamente lo que está bien hecho</p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">✔</span><p style="font-size:0.6em !important; color:var(--green-dark); margin:0; line-height:1.5">Explicar el impacto: <em>"Esto puede causar un bug cuando..."</em></p></div>
+        <div style="display:flex; gap:8px; align-items:flex-start"><span style="flex-shrink:0">✔</span><p style="font-size:0.6em !important; color:var(--green-dark); margin:0; line-height:1.5">Ser específico: señalar la línea exacta, no el archivo completo</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="key-idea key-purple">💡 Hoy en parejas: el objetivo es aprender juntos. Busquen mejoras — no busquen ganar.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Code Review · Qué buscar hoy</span>
+  <h2>5 criterios para revisar el Taller 1</h2>
+  <div class="two-col" style="gap:14px; margin-top:0.4em">
+    <div style="display:flex; flex-direction:column; gap:7px">
+      <div class="row-item"><div class="badge-num" style="background:var(--purple-bg);color:var(--purple-dark)">1</div><p><strong>Nombres de variables</strong> — ¿se entiende qué hace cada estado sin leer todo el código?</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--purple-bg);color:var(--purple-dark)">2</div><p><strong>Reset del estado</strong> — ¿se limpian <ic>selectedAnswer</ic> y <ic>showFunFact</ic> al pasar de pregunta?</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--purple-bg);color:var(--purple-dark)">3</div><p><strong>Lógica fuera de la UI</strong> — ¿hay cálculos complejos dentro del <ic>onClick</ic> que deberían ser una función?</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--purple-bg);color:var(--purple-dark)">4</div><p><strong>Código repetido</strong> — ¿hay bloques de UI que podrían extraerse como composable reutilizable?</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--purple-bg);color:var(--purple-dark)">5</div><p><strong>Una cosa que harías diferente</strong> — y por qué.</p></div>
+    </div>
+    <div style="background:var(--purple-bg); border-radius:10px; padding:0.85em 1em">
+      <p style="font-size:0.63em; font-weight:700; color:var(--purple-dark); margin-bottom:0.65em">Dinámica de hoy</p>
+      <div style="display:flex; flex-direction:column; gap:9px">
+        <div style="display:flex; gap:9px; align-items:flex-start"><span style="font-size:0.65em; font-weight:700; color:var(--purple-mid); flex-shrink:0; margin-top:1px">01</span><p style="font-size:0.6em !important; color:var(--purple-dark); margin:0; line-height:1.5">Abren el proyecto del compañero en su computadora.</p></div>
+        <div style="display:flex; gap:9px; align-items:flex-start"><span style="font-size:0.65em; font-weight:700; color:var(--purple-mid); flex-shrink:0; margin-top:1px">02</span><p style="font-size:0.6em !important; color:var(--purple-dark); margin:0; line-height:1.5">Revisan con estos 5 criterios — 20 minutos.</p></div>
+        <div style="display:flex; gap:9px; align-items:flex-start"><span style="font-size:0.65em; font-weight:700; color:var(--purple-mid); flex-shrink:0; margin-top:1px">03</span><p style="font-size:0.6em !important; color:var(--purple-dark); margin:0; line-height:1.5">Le explican al compañero qué encontraron, con respeto y argumentos.</p></div>
+        <div style="display:flex; gap:9px; align-items:flex-start"><span style="font-size:0.65em; font-weight:700; color:var(--purple-mid); flex-shrink:0; margin-top:1px">04</span><p style="font-size:0.6em !important; color:var(--purple-dark); margin:0; line-height:1.5">Un voluntario muestra su código al grupo.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BLOQUE 2 ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--teal-bg);color:var(--teal-dark)">2</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Nombres y legibilidad</h1>
+  <p style="font-size:0.63em; color:#888">El código se lee más veces de las que se escribe</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Legibilidad · Nombres de variables</span>
+  <h2>Nombres que se explican solos</h2>
+  <div class="ba-wrap">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid)">❌ Difícil de leer</div>
+      <pre><code class="language-kotlin">var x by remember { mutableStateOf(0) }
+var flag by remember { mutableStateOf(false) }
+var s by remember { mutableStateOf(null) }
+var f by remember { mutableStateOf(false) }
+
+// ¿Qué hace esto?
+if (flag && s != null) {
+    x++
+    f = true
+}</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">✅ Auto-documentado</div>
+      <pre><code class="language-kotlin">var currentIndex by remember { mutableStateOf(0) }
+var isRevealed by remember { mutableStateOf(false) }
+var selectedAnswer by remember { mutableStateOf(null) }
+var isFinished by remember { mutableStateOf(false) }
+
+// Ahora se entiende sin comentarios
+if (isRevealed && selectedAnswer != null) {
+    score++
+    isFinished = true
+}</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-teal">💡 Regla de oro: si necesitas un comentario para explicar qué hace una variable, el nombre está mal. Un buen nombre es su propio comentario.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Legibilidad · Convenciones Kotlin</span>
+  <h2>Convenciones de nomenclatura en Kotlin</h2>
+  <div class="two-col">
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <div class="card"><strong>Variables y funciones → camelCase</strong><p><ic>currentIndex</ic> · <ic>selectedAnswer</ic> · <ic>onBack()</ic></p></div>
+      <div class="card"><strong>Clases y objetos → PascalCase</strong><p><ic>Question</ic> · <ic>QuizScreen</ic> · <ic>Routes</ic></p></div>
+      <div class="card"><strong>Constantes → UPPER_SNAKE_CASE</strong><p><ic>MAX_SCORE</ic> · <ic>TOTAL_QUESTIONS</ic></p></div>
+      <div class="card"><strong>Booleanos → prefijo is / has</strong><p><ic>isFinished</ic> · <ic>isRevealed</ic> · <ic>hasError</ic></p></div>
+      <div class="card"><strong>Composables → PascalCase siempre</strong><p><ic>QuestionCard()</ic> · <ic>OptionButton()</ic></p></div>
+    </div>
+    <pre><code class="language-kotlin">// ❌ Mezcla de estilos
+var IsFinished = false
+var selected_answer = ""
+val CURRENT_question = questions[0]
+fun ShowResult() { }
+
+// ✅ Convenciones Kotlin
+var isFinished = false
+var selectedAnswer = ""
+val currentQuestion = questions[0]
+fun showResult() { }
+
+@Composable
+fun QuestionCard() { }
+
+@Composable
+fun OptionButton() { }</code></pre>
+  </div>
+</section>
+
+<!-- ══ BLOQUE 3 ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--teal-bg);color:var(--teal-dark)">3</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Estado y lógica</h1>
+  <p style="font-size:0.63em; color:#888">Los errores más comunes del Taller 1</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Estado · Reset incompleto</span>
+  <h2>Error #1 — El estado que no se limpia</h2>
+  <p>Al avanzar de pregunta algunos estados no se reseteaban — la respuesta de la pregunta anterior seguía visible en la siguiente.</p>
+  <div class="ba-wrap">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid)">❌ Reset incompleto</div>
+      <pre><code class="language-kotlin">Button(onClick = {
+    currentIndex++
+    // selectedAnswer sigue con valor anterior
+    // showFunFact sigue en true
+    // la siguiente pregunta muestra
+    // la respuesta anterior
+}) {
+    Text("Siguiente")
+}</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">✅ Reset completo</div>
+      <pre><code class="language-kotlin">Button(onClick = {
+    currentIndex++
+    selectedAnswer = null   // limpia selección
+    showFunFact    = false  // oculta funFact
+
+    if (currentIndex >= quizQuestions.size) {
+        isFinished = true
+    }
+}) {
+    Text("Siguiente")
+}</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-teal">💡 Cada vez que el estado cambia de contexto (nueva pregunta, nueva pantalla) pregúntate: ¿qué variables necesito resetear?</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Estado · Lógica en la UI</span>
+  <h2>Error #2 — Lógica de negocio dentro del onClick</h2>
+  <div class="ba-wrap">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid)">❌ Todo mezclado en la UI</div>
+      <pre><code class="language-kotlin sm">Button(onClick = {
+    selectedAnswer = option
+    if (option == currentQuestion.correctAnswer) {
+        score++
+    }
+    showFunFact = true
+    if (currentIndex + 1 >= quizQuestions.size) {
+        isFinished = true
+    }
+}) {
+    Text(option)
+}</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">✅ Lógica extraída a una función</div>
+      <pre><code class="language-kotlin sm">fun onOptionSelected(selected: String) {
+    selectedAnswer = selected
+    if (selected == currentQuestion.correctAnswer) {
+        score++
+    }
+    showFunFact = true
+    if (currentIndex + 1 >= quizQuestions.size) {
+        isFinished = true
+    }
+}
+
+// En el composable, limpio:
+Button(onClick = { onOptionSelected(option) }) {
+    Text(option)
+}</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-teal">💡 El <ic>onClick</ic> debería decir <em>qué</em> pasa, no <em>cómo</em> pasa. Más de 2 líneas → extraer a una función.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Estado · Condicionales</span>
+  <h2>Error #3 — if anidados sin claridad</h2>
+  <div class="ba-wrap">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid)">❌ if anidados difíciles de seguir</div>
+      <pre><code class="language-kotlin sm">if (!isFinished) {
+    if (selectedAnswer != null) {
+        if (showFunFact) {
+            Text(currentQuestion.funFact)
+            if (currentIndex < quizQuestions.size - 1) {
+                Button(onClick={}) { Text("Siguiente") }
+            } else {
+                Button(onClick={}) { Text("Ver resultado") }
+            }
+        }
+    }
+} else { /* pantalla de resultado */ }</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">✅ when con composables separados</div>
+      <pre><code class="language-kotlin sm">when {
+    isFinished -> {
+        ResultScreen(
+            score = score,
+            onRestart = ::restart
+        )
+    }
+    selectedAnswer != null -> {
+        AnswerSection(
+            question = currentQuestion,
+            onNext = ::goToNext
+        )
+    }
+    else -> {
+        OptionsSection(
+            options = currentQuestion.options,
+            onSelect = { selectedAnswer = it }
+        )
+    }
+}</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-teal">💡 Si tu <ic>if</ic> tiene más de 2 niveles de anidación, usa <ic>when</ic> o extrae composables separados.</div>
+</section>
+
+<!-- ══ BLOQUE 4 ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--amber-bg);color:var(--amber-dark)">4</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Composables reutilizables</h1>
+  <p style="font-size:0.63em; color:#888">No repitas UI — extrae componentes</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Composables · Extracción</span>
+  <h2>Identificar y extraer composables</h2>
+  <div class="ba-wrap">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid)">❌ Botón de opción repetido 4 veces</div>
+      <pre><code class="language-kotlin sm">// opción A
+Button(
+    onClick = { selectedAnswer = "Opción A" },
+    modifier = Modifier.fillMaxWidth()
+) { Text("Opción A") }
+
+// opción B — código idéntico
+Button(
+    onClick = { selectedAnswer = "Opción B" },
+    modifier = Modifier.fillMaxWidth()
+) { Text("Opción B") }
+
+// ... y así para C y D</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">✅ Un composable + forEach</div>
+      <pre><code class="language-kotlin sm">@Composable
+fun OptionButton(
+    text: String,
+    selectedAnswer: String?,
+    correctAnswer: String,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        enabled = selectedAnswer == null,
+        modifier = Modifier.fillMaxWidth()
+    ) { Text(text) }
+}
+
+// Uso limpio
+currentQuestion.options.forEach { option ->
+    OptionButton(
+        text = option,
+        selectedAnswer = selectedAnswer,
+        correctAnswer = currentQuestion.correctAnswer,
+        onClick = { selectedAnswer = option }
+    )
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Composables · Cuándo extraer</span>
+  <h2>¿Cuándo extraer un composable?</h2>
+  <div class="two-col">
+    <div style="display:flex; flex-direction:column; gap:7px">
+      <div class="row-item"><div class="badge-num" style="background:var(--amber-bg);color:var(--amber-dark)">→</div><p>El mismo bloque de UI aparece más de una vez</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--amber-bg);color:var(--amber-dark)">→</div><p>Un bloque tiene una responsabilidad clara y propia</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--amber-bg);color:var(--amber-dark)">→</div><p>El composable padre supera las ~80 líneas</p></div>
+      <div class="row-item"><div class="badge-num" style="background:var(--amber-bg);color:var(--amber-dark)">→</div><p>Quieres reutilizarlo en otra pantalla</p></div>
+      <div class="key-idea key-amber" style="margin-top:0.3em">💡 Un composable debe hacer <strong>una sola cosa</strong>. Si su nombre necesita un "y", probablemente son dos composables.</div>
+    </div>
+    <pre><code class="language-kotlin">// Composables bien separados
+// para el Taller 1
+
+@Composable
+fun QuizScreen() { /* orquesta todo */ }
+
+@Composable
+fun QuestionCard(question: String) { }
+
+@Composable
+fun OptionButton(...) { }
+
+@Composable
+fun FunFactSection(text: String) { }
+
+@Composable
+fun ScoreIndicator(score: Int, total: Int) { }
+
+@Composable
+fun ResultScreen(
+    score: Int,
+    onRestart: () -> Unit
+) { }</code></pre>
+  </div>
+</section>
+
+<!-- ══ BLOQUE 5 ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--amber-bg);color:var(--amber-dark)">5</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Estructura de archivos</h1>
+  <p style="font-size:0.63em; color:#888">Un proyecto ordenado es un proyecto mantenible</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Estructura · Organización</span>
+  <h2>Cómo organizar el proyecto</h2>
+  <div class="two-col">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid); margin-bottom:5px">❌ Todo en un archivo</div>
+      <pre><code class="language-kotlin">// MainActivity.kt — 300 líneas
+
+data class Question(...)
+
+val quizQuestions = listOf(...)
+
+@Composable
+fun QuizScreen() { ... }
+
+@Composable
+fun OptionButton() { ... }
+
+@Composable
+fun ResultScreen() { ... }</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark); margin-bottom:5px">✅ Separado por responsabilidad</div>
+      <pre><code class="language-kotlin">androidpedia/
+├── model/
+│   └── Question.kt
+├── data/
+│   └── QuizData.kt
+├── ui/
+│   ├── screens/
+│   │   ├── QuizScreen.kt
+│   │   └── ResultScreen.kt
+│   └── components/
+│       ├── QuestionCard.kt
+│       ├── OptionButton.kt
+│       └── ScoreIndicator.kt
+└── MainActivity.kt</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 Esta estructura escala. Cuando agreguemos Navigation, cada screen ya tendrá su archivo y conectarlos será natural.</div>
+</section>
+
+<!-- RESUMEN -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Resumen</span>
+  <h2>Lo que revisamos hoy</h2>
+  <div class="three-col" style="margin:0.4em 0">
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong style="color:var(--purple-dark)">Code Review profesional</strong>
+      <p>Revisar código es una habilidad. Se comenta el código, no la persona. Se sugiere, no se impone.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--teal-mid)">
+      <strong style="color:var(--teal-dark)">Nombres y convenciones</strong>
+      <p><ic>camelCase</ic> variables, <ic>PascalCase</ic> clases. Prefijo <ic>is/has</ic> para booleanos. Sin abreviaciones.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--teal-mid)">
+      <strong style="color:var(--teal-dark)">Reset del estado</strong>
+      <p>Al cambiar de pregunta resetear <em>todos</em> los estados relacionados. Un reset incompleto causa bugs invisibles.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong style="color:var(--amber-dark)">Lógica fuera de la UI</strong>
+      <p>El <ic>onClick</ic> no debe tener lógica compleja. Extraer funciones con nombres que describan qué hacen.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong style="color:var(--amber-dark)">Composables reutilizables</strong>
+      <p>Si un bloque de UI se repite, se extrae. Un composable = una responsabilidad. Usar <ic>forEach</ic> en vez de repetir.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong style="color:var(--amber-dark)">Estructura de archivos</strong>
+      <p>Separar por responsabilidad: <ic>model/</ic>, <ic>data/</ic>, <ic>ui/screens/</ic>, <ic>ui/components/</ic>.</p>
+    </div>
+  </div>
+  <div class="key-idea key-purple">💡 Próxima clase: Navigation Compose — conectamos estas pantallas bien organizadas en una app real.</div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4,
+  plugins:[]
+});
+Reveal.on('slidechanged', () => Prism.highlightAll());
+Prism.highlightAll();
+</script>
+</body>
+</html>
