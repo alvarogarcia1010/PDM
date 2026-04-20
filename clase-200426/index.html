@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navigation 3 — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h2 { font-size:1.22em; color:#1a1a1a; }
+.reveal p  { font-size:0.66em; line-height:1.65; color:#444; margin:0 0 0.28em; }
+.tag { display:inline-block; font-size:0.33em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+.key-idea { padding:0.42em 0.9em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.5; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+.reveal pre { margin:0; padding:0; background:transparent; box-shadow:none; width:100%; max-width:100%; overflow:hidden; }
+.reveal pre code.language-kotlin {
+  font-family:'Fira Code','Consolas',monospace !important;
+  font-size:0.46em !important; line-height:1.45 !important;
+  border-radius:10px !important; padding:10px 14px !important;
+  white-space:pre !important; display:block; text-align:left;
+  width:100%; box-sizing:border-box; overflow-x:auto; overflow-y:hidden;
+}
+.reveal pre code.language-kotlin.sm { font-size:0.42em !important; line-height:1.4 !important; }
+.reveal pre code .token.keyword    { color:#7c3aed !important; font-weight:600; }
+.reveal pre code .token.function   { color:#0369a1 !important; }
+.reveal pre code .token.string     { color:#16a34a !important; }
+.reveal pre code .token.number     { color:#dc2626 !important; }
+.reveal pre code .token.boolean    { color:#dc2626 !important; }
+.reveal pre code .token.operator   { color:#64748b !important; }
+.reveal pre code .token.comment    { color:#94a3b8 !important; font-style:italic; }
+.reveal pre code .token.class-name { color:#b45309 !important; font-weight:600; }
+.reveal pre code .token.annotation { color:#9333ea !important; }
+.reveal pre code .token.punctuation{ color:#475569 !important; }
+.reveal pre code                   { color:#1e293b !important; }
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0.35em 0; align-items:start; overflow:hidden; }
+.two-col > * { min-width:0; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:0.35em 0; }
+.card { background:#f7f7f7; border-radius:8px; padding:0.55em 0.8em; }
+.card strong { display:block; font-size:0.64em; font-weight:700; color:#111; margin-bottom:3px; }
+.card p { font-size:0.59em !important; color:#555; margin:0; line-height:1.55; }
+.flow { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin:0.35em 0; }
+.fb { font-size:0.55em; font-weight:600; padding:5px 10px; border-radius:6px; white-space:nowrap; }
+.fb-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.fb-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.fb-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.fb-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.arrow { font-size:0.85em; color:#bbb; }
+.blk-num { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; font-size:0.48em; font-weight:700; margin-bottom:0.35em; }
+.ba-wrap  { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0.35em 0; align-items:start; overflow:hidden; }
+.ba-wrap > div { min-width:0; }
+.ba-label { font-size:0.6em; font-weight:700; margin-bottom:5px; }
+.row-item { display:flex; gap:10px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.45em 0.75em; }
+.row-item p { font-size:0.6em !important; margin:0; line-height:1.5; color:#333; }
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+.stack-wrap { display:flex; gap:28px; align-items:flex-end; justify-content:center; margin:0.5em 0; }
+.stack-col  { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.stack-col span { font-size:0.42em; color:#888; font-weight:600; margin-bottom:2px; }
+.stack-item { border-radius:8px; font-size:0.52em; font-weight:700; padding:7px 22px; white-space:nowrap; }
+.stack-arrow { font-size:1.1em; color:#ccc; align-self:center; padding-bottom:6px; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- PORTADA -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <h1 style="font-size:1.8em; margin:0.1em 0">Navigation 3</h1>
+  <p style="font-size:0.68em; color:#888; margin-bottom:0.9em">Navegación multi-pantalla con Jetpack Navigation 3</p>
+  <div class="flow" style="justify-content:center">
+    <div class="fb fb-purple">Dependencias</div><span class="arrow">→</span>
+    <div class="fb fb-teal">La pila</div><span class="arrow">→</span>
+    <div class="fb fb-teal">BackStack</div><span class="arrow">→</span>
+    <div class="fb fb-amber">Rutas</div><span class="arrow">→</span>
+    <div class="fb fb-amber">NavDisplay</div><span class="arrow">→</span>
+    <div class="fb fb-blue">entryProvider</div>
+  </div>
+  <p style="font-size:0.44em; color:#bbb; margin-top:1.1em">Docente: Alvaro García · Kotlin &amp; Jetpack Compose</p>
+</section>
+
+<!-- ══ BLOQUE 1 — DEPENDENCIAS ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--purple-bg);color:var(--purple-dark)">1</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Dependencias</h1>
+  <p style="font-size:0.63em; color:#888">Repositorios Maven y Version Catalog</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Setup · Repositorios Maven</span>
+  <h2>¿De dónde vienen las librerías?</h2>
+  <p>Cuando agregamos una dependencia, Android Studio va a buscarla a internet — a un <strong>repositorio Maven</strong>. El proyecto tiene dos configurados por defecto en <ic>settings.gradle.kts</ic>.</p>
+  <div class="two-col" style="margin-top:0.3em">
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <div class="card" style="border-left:3px solid var(--purple-mid)">
+        <strong>google()</strong>
+        <p>Repositorio oficial de Google. Aquí vive todo Jetpack: Compose, Navigation, Room, Hilt…</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--purple-mid)">
+        <strong>mavenCentral()</strong>
+        <p>Repositorio público de la comunidad. Aquí vive Retrofit, Moshi, librerías de terceros…</p>
+      </div>
+    </div>
+    <pre><code class="language-kotlin">// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        google()        // ← todo Jetpack
+        mavenCentral()  // ← comunidad
+    }
+}</code></pre>
+  </div>
+  <div class="key-idea key-purple">💡 Piensen en los repositorios como las "tiendas" de las librerías. <ic>google()</ic> y <ic>mavenCentral()</ic> cubren casi todo lo que van a necesitar en el curso.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Setup · Version Catalog</span>
+  <h2>Un solo archivo para todas las versiones</h2>
+  <p>Antes, cada versión se escribía directo en <ic>build.gradle</ic>. Si la misma versión se usaba en varios módulos, había que cambiarla en cada uno. <strong>Version Catalog</strong> lo centraliza en <ic>gradle/libs.versions.toml</ic>.</p>
+  <div class="three-col" style="margin-top:0.3em">
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong>[versions]</strong>
+      <p>Solo los números, con un alias para cada uno. Ej: <ic>navigation3 = "1.1.0"</ic></p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong>[libraries]</strong>
+      <p>El coordenado completo de cada librería, referenciando la versión por alias con <ic>version.ref</ic>.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong>[plugins]</strong>
+      <p>Los plugins de Gradle: Android, Kotlin, Serialization. Se declaran aquí y se aplican en <ic>build.gradle.kts</ic>.</p>
+    </div>
+  </div>
+  <div class="key-idea key-purple">💡 Un solo archivo para todas las versiones. Cambiar una versión es cambiar una línea — y se actualiza en todo el proyecto automáticamente.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Setup · libs.versions.toml</span>
+  <h2>Agregando Navigation 3 — libs.versions.toml</h2>
+  <p>Solo necesitan agregar estas líneas al archivo existente. Los guiones (<ic>-</ic>) son la convención del TOML para separar palabras.</p>
+  <pre><code class="language-kotlin">[versions]
++ navigation3              = "1.1.0"
++ kotlinxSerializationCore = "1.11.0"
+
+[libraries]
++ androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
++ androidx-navigation3-ui      = { group = "androidx.navigation3", name = "navigation3-ui",      version.ref = "navigation3" }
++ kotlinx-serialization-core   = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
+
+[plugins]
++ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }</code></pre>
+  <div class="key-idea key-purple">💡 Los guiones del TOML se convierten en puntos al referenciar: <ic>navigation3-runtime</ic> → <ic>libs.androidx.navigation3.runtime</ic></div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Setup · build.gradle.kts</span>
+  <h2>Agregando Navigation 3 — build.gradle.kts</h2>
+  <p>Un plugin nuevo en <ic>plugins { }</ic> y tres dependencias en <ic>dependencies { }</ic>. El resto del archivo queda igual.</p>
+  <pre><code class="language-kotlin">plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
++   alias(libs.plugins.kotlin.serialization)
+}
+
+dependencies {
+    // ... las que ya tienen
+
++   // Navigation 3
++   implementation(libs.androidx.navigation3.runtime)
++   implementation(libs.androidx.navigation3.ui)
++   implementation(libs.kotlinx.serialization.core)
+
+    implementation(libs.androidx.core.ktx)
+    // ...
+}</code></pre>
+  <div class="key-idea key-purple">💡 Después de agregar estas líneas → <strong>Sync Project with Gradle Files</strong>. Android Studio descarga las librerías automáticamente.</div>
+</section>
+
+<!-- ══ BLOQUE 2 — LA PILA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--teal-bg);color:var(--teal-dark)">2</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">La pila de navegación</h1>
+  <p style="font-size:0.63em; color:#888">El concepto que explica todo lo demás</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">La pila · Back Stack</span>
+  <h2>Last In, First Out</h2>
+  <p>La navegación en Android funciona con una <strong>pila</strong> — el último en entrar es el primero en salir. En Nav 3 esa pila no es una caja negra: es una <strong>lista de Kotlin que vos controlás</strong>.</p>
+  <div class="stack-wrap">
+    <div class="stack-col">
+      <span>Abro la app</span>
+      <div class="stack-item" style="background:var(--purple-bg);color:var(--purple-dark)">Home</div>
+    </div>
+    <div class="stack-arrow">→</div>
+    <div class="stack-col">
+      <span>Voy a Profile</span>
+      <div class="stack-item" style="background:var(--teal-bg);color:var(--teal-dark)">MyProfile</div>
+      <div class="stack-item" style="background:var(--purple-bg);color:var(--purple-dark)">Home</div>
+    </div>
+    <div class="stack-arrow">→</div>
+    <div class="stack-col">
+      <span>Presiono atrás</span>
+      <div class="stack-item" style="background:var(--purple-bg);color:var(--purple-dark)">Home</div>
+    </div>
+  </div>
+  <div class="two-col" style="margin-top:0.2em">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="key-idea key-teal" style="margin-top:0">💡 Para avanzar se <strong>agrega</strong> un elemento. Para volver se <strong>quita</strong> el último. La pantalla visible siempre es la del tope.</div>
+      <div class="key-idea key-teal" style="margin-top:0">💡 Nav 3 no es una evolución de Nav 2 — es una reescritura. El developer <strong>posee la pila</strong> en lugar de pedírsela a una caja negra.</div>
+    </div>
+    <pre><code class="language-kotlin">// avanzar — push
+backStack.add(Routes.MyProfile(id))
+
+// volver — pop
+backStack.removeLastOrNull()</code></pre>
+  </div>
+</section>
+
+<!-- ══ BLOQUE 3 — BACKSTACK ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--teal-bg);color:var(--teal-dark)">3</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Creando el backStack</h1>
+  <p style="font-size:0.63em; color:#888">Una lista observable de Kotlin</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">BackStack · mutableStateListOf</span>
+  <h2>La pila como lista observable</h2>
+  <div class="two-col" style="margin-top:0.3em; align-items:center">
+    <div>
+      <pre><code class="language-kotlin">val backStack = remember {
+    mutableStateListOf&lt;Any&gt;(Routes.Home)
+}
+
+// avanzar
+backStack.add(Routes.MyProfile("123"))
+
+// volver
+backStack.removeLastOrNull()</code></pre>
+      <div class="key-idea key-teal" style="margin-top:0.5em">💡 <ic>mutableStateListOf</ic> es como <ic>mutableListOf</ic> pero Compose la observa — cuando cambia, la UI se recompone sola.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:10px">
+      <p style="font-size:0.52em; color:#888; margin:0; font-weight:600; text-transform:uppercase; letter-spacing:0.06em">backStack</p>
+      <div id="stack-vis" style="display:flex; flex-direction:column-reverse; align-items:center; gap:5px; min-height:140px; justify-content:flex-start; width:220px"></div>
+      <p id="stack-log" style="font-size:0.48em; color:#888; margin:0; min-height:1.4em; font-style:italic; text-align:center"></p>
+      <div style="display:flex; gap:10px; margin-top:4px">
+        <button onclick="stackPush()" style="font-size:0.52em; font-weight:700; padding:7px 18px; border-radius:8px; border:none; cursor:pointer; background:var(--teal-bg); color:var(--teal-dark)">+ add()</button>
+        <button onclick="stackPop()"  style="font-size:0.52em; font-weight:700; padding:7px 18px; border-radius:8px; border:none; cursor:pointer; background:var(--red-bg); color:var(--red-dark)">− removeLastOrNull()</button>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    const screens = [
+      { label:'Routes.Home',           bg:'#EEEDFE', color:'#3C3489' },
+      { label:'Routes.MyProfile("1")', bg:'#E1F5EE', color:'#085041' },
+      { label:'Routes.MyProfile("2")', bg:'#FAEEDA', color:'#633806' },
+      { label:'Routes.MyProfile("3")', bg:'#E6F1FB', color:'#0C447C' },
+    ];
+    let current = 1;
+    function render(log){
+      const vis = document.getElementById('stack-vis');
+      if(!vis) return;
+      vis.innerHTML = '';
+      for(let i = 0; i < current; i++){
+        const s = screens[i];
+        const isTop = i === current - 1;
+        const el = document.createElement('div');
+        el.style.cssText = `background:${s.bg};color:${s.color};border-radius:8px;font-size:0.52em;font-weight:700;padding:7px 24px;white-space:nowrap;width:200px;text-align:center;box-shadow:${isTop?'0 2px 8px rgba(0,0,0,0.13)':'none'};opacity:${isTop?'1':'0.5'};transition:all 0.25s`;
+        el.textContent = s.label + (isTop ? ' ← tope' : '');
+        vis.appendChild(el);
+      }
+      const logEl = document.getElementById('stack-log');
+      if(logEl) logEl.textContent = log || '';
+    }
+    window.stackPush = function(){
+      if(current >= screens.length){ document.getElementById('stack-log').textContent = 'Pila llena para el demo'; return; }
+      current++;
+      render('add(' + screens[current-1].label + ')');
+    };
+    window.stackPop = function(){
+      if(current <= 1){ document.getElementById('stack-log').textContent = 'No se puede sacar Home de la pila'; return; }
+      const removed = screens[current-1].label;
+      current--;
+      render('removeLastOrNull() → sacó ' + removed);
+    };
+    document.addEventListener('DOMContentLoaded', function(){ render(''); });
+    setTimeout(function(){ render(''); }, 300);
+  })();
+  </script>
+</section>
+
+<!-- ══ BLOQUE 4 — NAVDISPLAY BÁSICO ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--amber-bg);color:var(--amber-dark)">4</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">NavDisplay</h1>
+  <p style="font-size:0.63em; color:#888">Renderizando la pila — primer intento</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">NavDisplay · Buena práctica primero</span>
+  <h2>Las pantallas no navegan — piden navegar</h2>
+  <div class="ba-wrap">
+    <div>
+      <div class="ba-label" style="color:var(--red-mid)">❌ Pasar el backStack completo</div>
+      <pre><code class="language-kotlin">@Composable
+fun HomeScreen(
+    backStack: NavBackStack // ← conoce demasiado
+) {
+    Button(onClick = {
+        backStack.add(
+            Routes.MyProfile("123")
+        )
+    }) { Text("Ver perfil") }
+}</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">✅ Pasar una lambda específica</div>
+      <pre><code class="language-kotlin">@Composable
+fun HomeScreen(
+    navigateToProfile: (String) -> Unit
+) {
+    Button(onClick = {
+        navigateToProfile("123")
+    }) { Text("Ver perfil") }
+}</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 <ic>HomeScreen</ic> no sabe que existe un backStack — solo declara su intención. Es el mismo principio de UDF que ya conocen: los eventos suben, el estado baja.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">NavDisplay · Primer intento</span>
+  <h2>Conectando el backStack con la UI</h2>
+  <p><ic>NavDisplay</ic> lee el tope del backStack y renderiza la pantalla correspondiente. Por ahora usamos <ic>when</ic> para mapear cada ruta a su composable.</p>
+  <pre><code class="language-kotlin sm">@Composable
+fun NavigationWrapper() {
+    val backStack = remember { mutableStateListOf&lt;Any&gt;(Routes.Home) }
+
+    NavDisplay(
+        backStack = backStack,
+        onBack    = { backStack.removeLastOrNull() },
+        entryProvider = { key ->
+            when (key) {
+                is Routes.Home ->
+                    NavEntry(key) {
+                        HomeScreen(navigateToProfile = { id ->
+                            backStack.add(Routes.MyProfile(id))
+                        })
+                    }
+                is Routes.MyProfile ->
+                    NavEntry(key) {
+                        MyProfileScreen(onBack = { backStack.removeLastOrNull() })
+                    }
+                else -> NavEntry(key = Unit) { Text("Error") }
+            }
+        }
+    )
+}</code></pre>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">NavDisplay · ¿Qué huele mal?</span>
+  <h2>Funciona… pero hay tres problemas</h2>
+  <div style="display:flex; flex-direction:column; gap:9px; margin-top:0.35em">
+    <div class="row-item">
+      <div style="font-weight:700; font-size:0.58em; border-radius:5px; padding:2px 7px; flex-shrink:0; margin-top:1px; background:var(--red-bg); color:var(--red-mid)">!</div>
+      <p><ic>mutableStateListOf&lt;Any&gt;</ic> — la pila acepta cualquier objeto. El compilador no nos protege si agregamos algo que no es una ruta.</p>
+    </div>
+    <div class="row-item">
+      <div style="font-weight:700; font-size:0.58em; border-radius:5px; padding:2px 7px; flex-shrink:0; margin-top:1px; background:var(--red-bg); color:var(--red-mid)">!</div>
+      <p>El <ic>when</ic> con <ic>is</ic> no es exhaustivo — si agregamos una ruta nueva y olvidamos el <ic>when</ic>, el compilador no dice nada.</p>
+    </div>
+    <div class="row-item">
+      <div style="font-weight:700; font-size:0.58em; border-radius:5px; padding:2px 7px; flex-shrink:0; margin-top:1px; background:var(--red-bg); color:var(--red-mid)">!</div>
+      <p>El <ic>else</ic> con "Error" nunca debería existir si tenemos todas las rutas — es ruido que el compilador nos obliga a poner.</p>
+    </div>
+  </div>
+  <div class="key-idea key-amber" style="margin-top:0.5em">💡 Necesitamos un sistema de rutas que el compilador entienda. Así <ic>when</ic> se vuelve exhaustivo, desaparece el <ic>else</ic>, y la pila es type-safe.</div>
+</section>
+
+<!-- ══ BLOQUE 5 — RUTAS ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--amber-bg);color:var(--amber-dark)">5</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">Rutas type-safe</h1>
+  <p style="font-size:0.63em; color:#888">sealed class · NavKey · @Serializable · rememberNavBackStack</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Rutas · El problema con &lt;Any&gt;</span>
+  <h2>La pila acepta cualquier cosa… ¿eso está bien?</h2>
+  <p>Con <ic>mutableStateListOf&lt;Any&gt;</ic> la pila acepta cualquier objeto. Funciona, pero el compilador no nos protege — si agregamos algo incorrecto, no lo sabremos hasta que la app explote en runtime.</p>
+  <div class="two-col" style="margin-top:0.3em">
+    <pre><code class="language-kotlin">val backStack = remember {
+    mutableStateListOf&lt;Any&gt;(Routes.Home)
+}
+
+// El compilador acepta todo sin quejarse:
+backStack.add("pantalla_detalle") // ← string
+backStack.add(42)                 // ← número
+backStack.add(Routes.MyProfile()) // ← ruta real
+
+// ¿Cómo sé cuál es cuál?
+// Solo en runtime — demasiado tarde</code></pre>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="card" style="border-left:3px solid var(--amber-mid)">
+        <strong>Necesitamos tres cosas</strong>
+        <p>1. Que el compilador conozca <strong>todas</strong> las rutas posibles.<br>2. Que cada ruta pueda llevar sus propios argumentos.<br>3. Que Nav 3 pueda restaurar la pila si el sistema mata el proceso.</p>
+      </div>
+      <div class="key-idea key-amber">💡 La solución: <ic>sealed class</ic> + <ic>NavKey</ic> + <ic>@Serializable</ic>. Tres decisiones, tres problemas resueltos.</div>
+    </div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Rutas · data object vs data class</span>
+  <h2>¿Cuándo usar cada uno?</h2>
+  <p>Antes de definir las rutas, necesitamos entender la diferencia. La regla es simple: si el elemento <strong>tiene datos propios</strong>, usamos <ic>data class</ic>. Si no, <ic>data object</ic>.</p>
+  <div class="two-col" style="margin-top:0.3em; align-items:start">
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <div class="card" style="border-left:3px solid var(--amber-mid)">
+        <strong>data object — sin argumentos</strong>
+        <p>Una sola instancia, siempre igual. Ideal para pantallas que no necesitan recibir información. Tiene <ic>toString()</ic> y <ic>equals()</ic> automáticos.</p>
+      </div>
+      <pre><code class="language-kotlin">// ✅ Home no necesita argumentos
+data object Home : Routes()
+
+// Siempre es la misma instancia
+Routes.Home == Routes.Home // true</code></pre>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <div class="card" style="border-left:3px solid var(--amber-mid)">
+        <strong>data class — con argumentos</strong>
+        <p>Cada instancia lleva sus propios datos. Ideal para pantallas de detalle que necesitan saber <em>qué</em> mostrar.</p>
+      </div>
+      <pre><code class="language-kotlin">// ✅ MyProfile necesita saber qué perfil
+data class MyProfile(val id: String) : Routes()
+
+// Cada instancia es distinta
+MyProfile("1") == MyProfile("2") // false
+MyProfile("1") == MyProfile("1") // true</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 La regla: ¿la pantalla necesita recibir información para saber qué mostrar? → <ic>data class</ic>. ¿Siempre muestra lo mismo? → <ic>data object</ic>.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Rutas · sealed class : NavKey</span>
+  <h2>Rutas como objetos type-safe</h2>
+  <div class="two-col" style="align-items:center">
+    <pre><code class="language-kotlin">sealed class Routes : NavKey {
+
+    @Serializable
+    data object Home : Routes()
+
+    @Serializable
+    data class MyProfile(
+        val id: String
+    ) : Routes()
+
+}</code></pre>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <div class="card" style="border-left:3px solid var(--amber-mid)">
+        <strong>sealed class</strong>
+        <p>El compilador conoce <strong>todas</strong> las subclases posibles. Si olvidamos manejar una ruta en el <ic>when</ic>, nos avisa en compilación.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--amber-mid)">
+        <strong>: NavKey</strong>
+        <p>Requisito de Nav 3. Solo objetos que implementen <ic>NavKey</ic> pueden vivir en el backStack — adiós al <ic>&lt;Any&gt;</ic>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Rutas · @Serializable</span>
+  <h2>¿Por qué @Serializable?</h2>
+  <p>Cuando Android necesita memoria, puede <strong>matar tu app</strong> en segundo plano. Cuando el usuario regresa, el sistema intenta reconstruirla — y Nav 3 necesita restaurar la pila completa.</p>
+  <div class="three-col" style="margin-top:0.35em">
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong>Sin @Serializable</strong>
+      <p>Nav 3 no puede guardar la ruta. El usuario pierde su lugar al volver a la app.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong>Con @Serializable</strong>
+      <p>Nav 3 convierte la ruta y sus argumentos a JSON. Al volver, reconstruye el backStack exacto.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong>Por eso el plugin</strong>
+      <p>El plugin <ic>kotlin.serialization</ic> que agregamos en el TOML es el que procesa <ic>@Serializable</ic> en compilación.</p>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 Todo se conecta: plugin en <ic>libs.versions.toml</ic> → habilita <ic>@Serializable</ic> → Nav 3 puede guardar y restaurar la pila completa.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Rutas · rememberNavBackStack</span>
+  <h2>De mutableStateListOf a rememberNavBackStack</h2>
+  <p>Ahora que nuestras rutas implementan <ic>NavKey</ic>, Nav 3 nos da un helper que hace lo mismo — pero además <strong>persiste la pila</strong> ante rotaciones y muerte del proceso.</p>
+  <div class="ba-wrap" style="margin-top:0.35em">
+    <div>
+      <div class="ba-label" style="color:#888">Antes</div>
+      <pre><code class="language-kotlin">val backStack = remember {
+    mutableStateListOf&lt;Any&gt;(Routes.Home)
+}
+
+// ❌ Tipo Any — no type-safe
+// ❌ No persiste si el sistema
+//    mata el proceso</code></pre>
+    </div>
+    <div>
+      <div class="ba-label" style="color:var(--green-dark)">Ahora</div>
+      <pre><code class="language-kotlin">val backStack =
+    rememberNavBackStack(Routes.Home)
+
+// ✅ Tipo NavKey — type-safe
+// ✅ Persiste automáticamente
+//    (usa rememberSaveable por dentro)</code></pre>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 <ic>rememberNavBackStack</ic> usa <ic>rememberSaveable</ic> por dentro — el mismo concepto que ya vieron. La pila sobrevive rotaciones y process death.</div>
+</section>
+
+<!-- ══ BLOQUE 5 — NAVDISPLAY ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <div class="blk-num" style="background:var(--blue-bg);color:var(--blue-dark)">5</div>
+  <h1 style="font-size:1.55em; margin:0.05em 0">NavDisplay y entryProvider</h1>
+  <p style="font-size:0.63em; color:#888">El composable que renderiza la pila</p>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">NavDisplay · ¿Qué es un DSL?</span>
+  <h2>Ya usan DSLs — sin saberlo</h2>
+  <p>Un <strong>DSL</strong> (Domain-Specific Language) es una API diseñada para leerse como un lenguaje propio. En lugar de llamar funciones una por una, <strong>declarás</strong> lo que querés dentro de un bloque estructurado.</p>
+  <div class="two-col" style="margin-top:0.4em; align-items:center">
+    <pre><code class="language-kotlin">// Scaffold — DSL que ya usan
+Scaffold(
+    topBar    = { TopAppBar(...) },
+    bottomBar = { NavigationBar(...) },
+    floatingActionButton = { FAB(...) }
+) { innerPadding ->
+    // contenido
+}</code></pre>
+    <pre><code class="language-kotlin">// entryProvider — DSL de Nav 3
+entryProvider {
+    entry&lt;Routes.Home&gt; {
+        HomeScreen(...)
+    }
+    entry&lt;Routes.MyProfile&gt; { route ->
+        MyProfileScreen(...)
+    }
+}</code></pre>
+  </div>
+  <div class="key-idea key-blue">💡 Llevan semanas usando DSLs de Compose. <ic>entryProvider { }</ic> sigue exactamente el mismo patrón — declarás las entradas dentro de un bloque y Nav 3 sabe cómo interpretarlas.</div>
+</section>
+
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">NavDisplay · El wrapper completo</span>
+  <h2>Conectando todo con entryProvider DSL</h2>
+  <pre><code class="language-kotlin sm">@Composable
+fun NavigationWrapper() {
+    val backStack = rememberNavBackStack(Routes.Home)
+
+    NavDisplay(
+        backStack = backStack,
+        onBack    = { backStack.removeLastOrNull() },
+        entryProvider = entryProvider {
+
+            entry&lt;Routes.Home&gt; {
+                HomeScreen(
+                    navigateToProfile = { id ->
+                        backStack.add(Routes.MyProfile(id))
+                    }
+                )
+            }
+
+            entry&lt;Routes.MyProfile&gt; { route ->
+                MyProfileScreen(
+                    userId = route.id,
+                    onBack = { backStack.removeLastOrNull() }
+                )
+            }
+
+        }
+    )
+}</code></pre>
+  <div class="key-idea key-blue">💡 <ic>entry&lt;Routes.MyProfile&gt; { route -&gt; }</ic> — el parámetro <ic>route</ic> ya es el objeto deserializado. Accedemos a <ic>route.id</ic> directamente, sin cast, sin strings, sin <ic>else</ic>.</div>
+</section>
+
+<!-- ══ RESUMEN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Resumen</span>
+  <h2>Lo que construimos hoy</h2>
+  <div class="three-col" style="margin:0.4em 0">
+    <div class="card" style="border-left:3px solid var(--purple-mid)">
+      <strong style="color:var(--purple-dark)">Version Catalog</strong>
+      <p>Un solo archivo <ic>libs.versions.toml</ic> centraliza versiones. Cambiar una versión es cambiar una línea.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--teal-mid)">
+      <strong style="color:var(--teal-dark)">La pila</strong>
+      <p><ic>add()</ic> para avanzar, <ic>removeLastOrNull()</ic> para volver. El developer la controla directamente.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--teal-mid)">
+      <strong style="color:var(--teal-dark)">rememberNavBackStack</strong>
+      <p>Persiste la pila automáticamente usando <ic>rememberSaveable</ic>. Sobrevive rotaciones y process death.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--amber-mid)">
+      <strong style="color:var(--amber-dark)">sealed class : NavKey + @Serializable</strong>
+      <p>Rutas type-safe que el compilador verifica. <ic>@Serializable</ic> permite restaurar la pila.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue-mid)">
+      <strong style="color:var(--blue-dark)">entryProvider DSL</strong>
+      <p><ic>entry&lt;Ruta&gt; { route -&gt; }</ic> — acceso type-safe a los argumentos, sin <ic>when</ic>, sin casos imposibles.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue-mid)">
+      <strong style="color:var(--blue-dark)">Lambdas de navegación</strong>
+      <p>Las pantallas declaran su intención, no conocen el backStack. Más testeable, más reutilizable.</p>
+    </div>
+  </div>
+  <div class="key-idea key-purple">💡 Próxima clase: <strong>LazyColumn y LazyRow</strong> — listas que solo renderizan lo visible. El último ingrediente para una app real.</div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4,
+  plugins:[]
+});
+Reveal.on('slidechanged', () => Prism.highlightAll());
+Prism.highlightAll();
+</script>
+</body>
+</html>
