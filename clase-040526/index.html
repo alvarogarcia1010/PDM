@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitectura MVVM — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+pre[class*="language-"] { font-size:0.42em !important; line-height:1.55; border-radius:8px; padding:0.9em 1.1em !important; margin:0.3em 0 !important; max-height:480px; overflow:auto; background:#fafafa !important; border:1px solid #e0e0e0; }
+code[class*="language-"] { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#888; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+.layers { display:flex; flex-direction:column; gap:8px; max-width:78%; margin:0.4em auto; }
+.layer { padding:0.6em 1.1em; border-radius:8px; font-weight:600; color:#fff; font-size:0.62em; display:flex; justify-content:space-between; align-items:center; }
+.layer-ui   { background:var(--green-mid); }
+.layer-dom  { background:var(--blue-mid); opacity:0.85; }
+.layer-data { background:var(--purple-dark); }
+.layer-arrow { text-align:center; color:#bbb; font-size:0.7em; line-height:0.5; }
+.optional-tag { font-size:0.65em; font-weight:500; opacity:0.85; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:10px; }
+
+.history-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:0.4em; }
+.h-card { background:#f7f7f7; border-radius:8px; padding:0.7em 0.85em; }
+.h-card.mvc { border-top:3px solid var(--amber-mid); }
+.h-card.mvp { border-top:3px solid var(--blue-mid); }
+.h-card.mvvm { border-top:3px solid var(--green-mid); }
+.h-card-title { font-size:0.55em; font-weight:700; margin-bottom:0.3em; }
+.h-card-desc { font-size:0.45em; color:#444; line-height:1.5; }
+.h-card-pro { font-size:0.45em; color:var(--green-dark); margin-top:0.3em; font-weight:600; }
+.h-card-con { font-size:0.45em; color:var(--red-dark); margin-top:0.15em; font-weight:600; }
+
+.mvvm-pieces { display:flex; flex-direction:column; gap:9px; max-width:88%; margin:0.4em auto; }
+.piece { display:flex; gap:14px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.6em 0.95em; }
+.piece-tag { font-weight:700; font-size:0.55em; padding:4px 10px; border-radius:6px; flex-shrink:0; min-width:55px; text-align:center; }
+.piece-tag.m  { background:#FAEEDA; color:#633806; }
+.piece-tag.v  { background:#EAF3DE; color:#27500A; }
+.piece-tag.vm { background:#E6F1FB; color:#0C447C; }
+.piece-text { font-size:0.58em; color:#222; line-height:1.55; }
+.piece-text strong { color:#000; }
+
+.folder-tree { background:#fafafa; border:1px solid #e0e0e0; border-radius:8px; padding:1em 1.4em; font-family:'Fira Code','Consolas',monospace; font-size:0.55em; line-height:1.7; color:#333; max-width:60%; margin:0.4em auto; }
+.folder-tree .folder { color:var(--purple-dark); font-weight:700; }
+.folder-tree .file { color:#444; }
+.folder-tree .ext { color:var(--blue-mid); }
+
+.problems { display:flex; flex-direction:column; gap:8px; margin-top:0.3em; }
+.problem { display:flex; gap:11px; align-items:flex-start; background:var(--red-bg); border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--red-mid); }
+.p-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--red-dark); font-weight:700; }
+.p-text { font-size:0.6em; color:#222; line-height:1.55; }
+.p-text strong { color:var(--red-dark); }
+
+.benefits { display:flex; flex-direction:column; gap:7px; margin-top:0.3em; }
+.benefit { display:flex; gap:11px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--green-mid); }
+.b-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--green-dark); font-weight:700; }
+.b-text { font-size:0.58em; color:#222; line-height:1.55; }
+.b-text strong { color:#000; }
+
+.poll { background:#1a1a1a; border-radius:12px; padding:1.2em 1.4em; max-width:80%; margin:0.4em auto; color:#fff; }
+.poll-author { font-size:0.55em; font-weight:600; margin-bottom:0.4em; }
+.poll-author small { display:block; color:#999; font-weight:400; }
+.poll-q { font-size:0.6em; margin-bottom:0.6em; color:#fff; }
+.poll-bar { display:flex; justify-content:space-between; align-items:center; padding:6px 11px; border-radius:6px; margin-bottom:5px; font-size:0.55em; }
+.poll-bar.win { background:#1B6FA5; color:#fff; font-weight:700; }
+.poll-bar.normal { background:#2a2a2a; color:#ccc; }
+.poll-meta { font-size:0.4em; color:#888; margin-top:0.4em; }
+
+.flow-diagram { background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:0.8em; margin:0.4em auto; max-width:88%; }
+.flow-row { display:flex; justify-content:center; align-items:center; gap:14px; }
+.flow-box { padding:0.5em 1em; border-radius:8px; font-size:0.55em; font-weight:700; color:#fff; min-width:90px; text-align:center; }
+.flow-box.view { background:var(--green-mid); }
+.flow-box.vm { background:var(--blue-mid); }
+.flow-box.repo { background:var(--purple-dark); }
+.flow-box.data { background:#444; }
+.flow-arrow { font-size:0.7em; color:#999; }
+.flow-label { font-size:0.4em; color:#666; text-align:center; margin-top:3px; font-style:italic; }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.next-class { background:#1a1a1a; color:#fff; border-radius:10px; padding:1em 1.3em; max-width:85%; margin:0.4em auto; }
+.next-class h3 { font-size:0.65em; font-weight:700; color:#fff; margin:0 0 0.4em; text-transform:uppercase; letter-spacing:0.06em; }
+.next-class p { color:#ddd; font-size:0.55em; line-height:1.55; margin:0 0 0.3em; }
+.next-class .next-tag { display:inline-block; background:#3C3489; padding:3px 11px; border-radius:6px; font-size:0.45em; font-weight:600; margin-top:0.4em; }
+
+.layer-detail { background:#fafafa; border:2px solid var(--green-mid); border-radius:12px; padding:0.9em 1.1em; max-width:75%; margin:0.4em auto; }
+.layer-detail.data { border-color:var(--purple-dark); }
+.layer-detail.dom { border-color:var(--blue-mid); }
+.layer-detail-title { font-size:0.7em; font-weight:700; color:var(--green-mid); text-align:center; margin-bottom:0.4em; }
+.layer-detail.data .layer-detail-title { color:var(--purple-dark); }
+.layer-detail.dom .layer-detail-title { color:var(--blue-mid); }
+.layer-inner { background:#fff; border-radius:6px; padding:0.5em 0.9em; margin:0.3em 0; font-size:0.55em; text-align:center; font-weight:600; }
+.layer-inner.green { background:#EAF3DE; color:#27500A; }
+.layer-inner.lblue { background:#E6F1FB; color:#0C447C; }
+.layer-inner.purple { background:#EEEDFE; color:#3C3489; }
+.layer-inner.gray  { background:#f0f0f0; color:#444; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <h1 style="font-size:1.8em">Arquitectura de aplicaciones</h1>
+  <p style="font-size:0.65em; color:#888">Cómo organizar el código para que no se vuelva un infierno</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"El software es como la poesía: debe escribirse con cuidado y pasión"</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. EL PROBLEMA — CÓDIGO SIN ARQUITECTURA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-red">El problema</span>
+  <h2>Vean este código</h2>
+  <p>Una pantalla que muestra una lista de películas. Datos hardcoded, todo en un solo Composable.</p>
+<pre><code class="language-kotlin">@Composable
+fun MovieListScreen() {
+    var movies by remember { mutableStateOf(listOf&lt;Movie&gt;()) }
+    var loading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        loading = true
+        delay(2000)
+        movies = listOf(
+            Movie("Minecraft", 9.0),
+            Movie("Dune", 8.7),
+            Movie("Interstellar", 9.3)
+        )
+        loading = false
+    }
+
+    if (loading) CircularProgressIndicator()
+    else LazyColumn {
+        items(movies) { movie ->
+            Text("${movie.title} - ${movie.rating}")
+        }
+    }
+}</code></pre>
+</section>
+
+<!-- ══ 3. ¿QUÉ PASA CUANDO CRECE? ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-red">El problema</span>
+  <h2>¿Qué pasa cuando la app crece?</h2>
+  <p>El código de arriba funciona para 3 películas hardcoded. Pero pensemos en una app real.</p>
+  <div class="problems">
+    <div class="problem">
+      <div class="p-icon">!</div>
+      <p class="p-text"><strong>Los datos no se pueden compartir.</strong> Si otra pantalla necesita las películas, las tiene que cargar de nuevo desde cero.</p>
+    </div>
+    <div class="problem">
+      <div class="p-icon">!</div>
+      <p class="p-text"><strong>La lógica está atrapada en la UI.</strong> No la podemos testear sin renderizar el composable completo.</p>
+    </div>
+    <div class="problem">
+      <div class="p-icon">!</div>
+      <p class="p-text"><strong>Si cambia la fuente de datos</strong> (de hardcoded a API), tenemos que tocar el composable.</p>
+    </div>
+    <div class="problem">
+      <div class="p-icon">!</div>
+      <p class="p-text"><strong>Al rotar la pantalla</strong>, el estado se pierde y los datos se vuelven a cargar.</p>
+    </div>
+  </div>
+  <div class="key-idea key-red">💡 Esto se vuelve un infierno cuando la app tiene 20 pantallas. <strong>Necesitamos una forma de organizar el código.</strong></div>
+</section>
+
+<!-- ══ 4. DEFINICIÓN DE ARQUITECTURA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Solución</span>
+  <h2>¿Qué es una arquitectura de software?</h2>
+  <p>Una arquitectura no es más que <strong>una forma de organizar el código</strong> para poder mantener el control sobre la aplicación a medida que crece.</p>
+  <p>En apps móviles esto es esencial para gestionar tres cosas:</p>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">→</div><div class="b-text"><strong>El ciclo de vida</strong> — qué pasa cuando la pantalla se destruye y se vuelve a crear.</div></div>
+    <div class="benefit"><div class="b-icon">→</div><div class="b-text"><strong>La interfaz de usuario</strong> — qué se muestra y cómo se actualiza.</div></div>
+    <div class="benefit"><div class="b-icon">→</div><div class="b-text"><strong>La lógica de negocio</strong> — qué hace la app y cómo lo hace.</div></div>
+  </div>
+  <div class="key-idea key-purple">💡 Una buena arquitectura define <strong>qué responsabilidad tiene cada parte del código</strong> y dónde vive cada cosa.</div>
+</section>
+
+<!-- ══ 5. ARQUITECTURA RECOMENDADA POR GOOGLE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Solución</span>
+  <h2>Arquitectura recomendada por Google</h2>
+  <p>Teniendo en cuenta los principios de arquitectura comunes, diseña cada aplicación con al menos dos capas:</p>
+  <div class="layers">
+    <div class="layer layer-ui">UI Layer<span class="optional-tag">muestra los datos en la pantalla</span></div>
+    <div class="layer-arrow">↓</div>
+    <div class="layer layer-data">Data Layer<span class="optional-tag">contiene la lógica y expone los datos</span></div>
+  </div>
+  <p style="margin-top:0.4em">Puedes agregar una capa adicional llamada <strong>capa de dominio</strong> para simplificar y volver a utilizar las interacciones entre la UI y la capa de datos.</p>
+  <div class="layers" style="margin-top:0.3em">
+    <div class="layer layer-dom">Domain Layer<span class="optional-tag">opcional</span></div>
+  </div>
+  <div class="key-idea key-purple">💡 En este curso vamos a trabajar solo con <strong>UI Layer y Data Layer</strong>. La capa de dominio aparece en proyectos grandes con lógica compleja reutilizable.</div>
+</section>
+
+<!-- ══ 6. CAPA DE UI ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Capa de UI</span>
+  <h2>Capa de la UI</h2>
+  <p>La función de la capa de UI (o <em>capa de presentación</em>) consiste en <strong>mostrar los datos de la aplicación en la pantalla</strong>.</p>
+  <p>Cuando los datos cambian — ya sea por una interacción del usuario o por una entrada externa como una respuesta de red — la UI se actualiza para reflejar los cambios.</p>
+  <div class="layer-detail">
+    <div class="layer-detail-title">UI Layer</div>
+    <div class="layer-inner green">UI elements</div>
+    <div style="text-align:center; color:#aaa; font-size:0.55em; line-height:0.4">↓</div>
+    <div class="layer-inner lblue">State holders</div>
+  </div>
+  <div class="key-idea key-green">💡 La capa de UI consta de dos cosas: <strong>elementos de UI</strong> que renderizan los datos (Composables) y <strong>contenedores de estado</strong> como el <ic>ViewModel</ic> que retienen los datos y exponen la lógica.</div>
+</section>
+
+<!-- ══ 7. SLIDE PUENTE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Patrón de arquitectura</span>
+  <h2>¿Cómo organizamos esa capa por dentro?</h2>
+  <p>Acabamos de ver que la capa de UI tiene <strong>UI elements</strong> y <strong>State holders</strong>. Pero, ¿cómo se relacionan entre ellos? ¿Quién le habla a quién? ¿Quién maneja la lógica?</p>
+  <p>Para responder eso, necesitamos hablar de <strong>patrones de arquitectura</strong>.</p>
+  <div class="key-idea key-amber">💡 Una <strong>arquitectura</strong> es el plano completo de la app — las capas que acabamos de ver. Un <strong>patrón de arquitectura</strong> es la receta específica para organizar una de esas capas. MVC, MVP y MVVM son patrones para la capa de UI.</div>
+</section>
+
+<!-- ══ 8. HISTORIA RÁPIDA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Patrón de arquitectura</span>
+  <h2>Las arquitecturas que vinieron antes</h2>
+  <p>Antes de MVVM hubo otras arquitecturas. Cada una resolvió problemas de la anterior.</p>
+  <div class="history-grid">
+    <div class="h-card mvc">
+      <div class="h-card-title" style="color:var(--amber-dark)">MVC</div>
+      <div class="h-card-desc">Model — View — Controller. La primera. Vista y controlador viven en la misma Activity.</div>
+      <div class="h-card-con">✗ Una sola clase con todo</div>
+    </div>
+    <div class="h-card mvp">
+      <div class="h-card-title" style="color:var(--blue-dark)">MVP</div>
+      <div class="h-card-desc">Model — View — Presenter. Saca la lógica del Activity. Mejora testing.</div>
+      <div class="h-card-pro">✓ Lógica separada</div>
+      <div class="h-card-con">✗ Acoplado a la vista</div>
+    </div>
+    <div class="h-card mvvm">
+      <div class="h-card-title" style="color:var(--green-dark)">MVVM</div>
+      <div class="h-card-desc">Model — View — ViewModel. La vista observa datos del ViewModel y se actualiza sola.</div>
+      <div class="h-card-pro">✓ Reactivo y testeable</div>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 MVVM ganó porque <strong>la vista no le pregunta al ViewModel qué hacer</strong> — observa cambios y se actualiza automáticamente.</div>
+</section>
+
+<!-- ══ 9. ENCUESTA JORGE CASTILLO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Patrón de arquitectura</span>
+  <h2>¿Qué se usa en la industria?</h2>
+  <p>Esta encuesta es de Jorge Castillo, uno de los referentes de Android en la comunidad Kotlin.</p>
+  <div class="poll">
+    <div class="poll-author">Jorge Castillo <small>@JorgeCastilloPr</small></div>
+    <div class="poll-q">What architectural pattern do you use at work for Android projects?</div>
+    <div class="poll-bar normal"><span>MVP</span><span>6.4%</span></div>
+    <div class="poll-bar win"><span>MVVM</span><span>76.3%</span></div>
+    <div class="poll-bar normal"><span>MVI</span><span>12.6%</span></div>
+    <div class="poll-bar normal"><span>Other</span><span>4.8%</span></div>
+    <div class="poll-meta">1,415 votos · Resultados finales</div>
+  </div>
+  <div class="key-idea key-amber">💡 <strong>3 de cada 4 desarrolladores Android</strong> en producción usan MVVM. No es teoría, es lo que la industria usa hoy.</div>
+</section>
+
+<!-- ══ 9. MVVM EN DETALLE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">MVVM</span>
+  <h2>MVVM en detalle</h2>
+  <p>La arquitectura MVVM divide la responsabilidad en tres piezas claras:</p>
+  <div class="mvvm-pieces">
+    <div class="piece">
+      <div class="piece-tag m">Model</div>
+      <div class="piece-text"><strong>Los datos.</strong> Las clases que representan la información que la app maneja. Por ejemplo: <ic>data class Movie(...)</ic></div>
+    </div>
+    <div class="piece">
+      <div class="piece-tag v">View</div>
+      <div class="piece-text"><strong>Lo que el usuario ve.</strong> En Compose, son los Composables. La View no decide nada por sí misma — observa al ViewModel y se actualiza cuando los datos cambian.</div>
+    </div>
+    <div class="piece">
+      <div class="piece-tag vm">ViewModel</div>
+      <div class="piece-text"><strong>El cerebro intermedio.</strong> Conecta los datos con la vista. Maneja el estado, la lógica, y expone los datos como flujos observables.</div>
+    </div>
+  </div>
+  <div class="key-idea key-green">💡 <strong>Los cambios en el ViewModel actualizan la vista automáticamente</strong>, sin que la vista tenga que pedirlos.</div>
+</section>
+
+<!-- ══ TIKTOK TIME ══ -->
+<section data-background-color="#000000" style="text-align:center; color:#fff">
+  <div style="font-size:0.45em; font-weight:700; letter-spacing:0.15em; color:#FE2C55; margin-bottom:0.3em">⏸ PAUSA</div>
+  <h1 style="font-size:2.4em; color:#fff; margin:0.1em 0; line-height:1.05">
+    <span style="color:#25F4EE">Tik</span><span style="color:#FE2C55">Tok</span> Time
+  </h1>
+  <p style="font-size:0.65em; color:#ccc; max-width:75%; margin:0.6em auto; line-height:1.55">
+    En TikTok no solo se aprende a bailar. Hay devs que enseñan, hay gente que cuenta cómo resolvió problemas reales con código.
+  </p>
+  <p style="font-size:0.55em; color:#888; margin-top:0.4em; font-style:italic">
+    Hoy vamos a ver uno: alguien que tuvo un problema y lo resolvió haciendo una app.
+  </p>
+  <div style="background:rgba(254,44,85,0.15); border:1px solid rgba(254,44,85,0.4); border-radius:10px; padding:0.8em 1.1em; max-width:80%; margin:0.7em auto 0; display:flex; align-items:center; gap:14px; justify-content:center">
+    <div style="font-size:1.2em">🎯</div>
+    <div style="text-align:left">
+      <div style="font-size:0.5em; font-weight:700; color:#FE2C55; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.2em">Justo lo que les pido en el proyecto</div>
+      <div style="font-size:0.55em; color:#ddd">Identificar un problema real → diseñar solución → construir la app</div>
+    </div>
+  </div>
+  <p style="font-size:0.42em; color:#666; margin-top:0.8em; word-break:break-all">
+    https://vt.tiktok.com/ZS9Qm1Rap/
+  </p>
+</section>
+
+<!-- ══ 11. ESTRUCTURA DE CARPETAS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">MVVM</span>
+  <h2>Estructura típica de carpetas</h2>
+  <p>Cada pantalla tiene su propia carpeta con su View y ViewModel juntos. El modelo y los datos viven aparte.</p>
+  <div class="folder-tree" style="text-align:left; max-width:75%">
+<span class="folder">com.example.app</span><br>
+├── <span class="folder">data</span><br>
+│&nbsp;&nbsp;&nbsp;└── <span class="file">DummyMovies<span class="ext">.kt</span></span><br>
+├── <span class="folder">model</span><br>
+│&nbsp;&nbsp;&nbsp;└── <span class="file">Movie<span class="ext">.kt</span></span><br>
+└── <span class="folder">screens</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="folder">MovieList</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">MovieListScreen<span class="ext">.kt</span></span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="file">MovieListViewModel<span class="ext">.kt</span></span>
+  </div>
+  <div class="key-idea key-green">💡 Cuando abrís un proyecto MVVM, <strong>sabés inmediatamente dónde buscar cada cosa</strong>. Eso es lo que vale la arquitectura.</div>
+</section>
+<!-- ══ 12. EL MODELO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Implementación</span>
+  <h2>El Modelo</h2>
+  <p>El Modelo es lo más simple: una clase de datos que representa la información de la app.</p>
+<pre><code class="language-kotlin">// model/Movie.kt
+data class Movie(
+    val title: String,
+    val rating: Double
+)</code></pre>
+  <div class="key-idea key-amber">💡 El modelo <strong>no sabe nada de la UI ni de cómo se muestran los datos</strong>. Solo describe la información.</div>
+</section>
+
+<!-- ══ 12. DUMMY MOVIES ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Implementación</span>
+  <h2>Datos de ejemplo</h2>
+  <p>Mientras no consumimos una API, podemos usar datos hardcoded en un archivo aparte:</p>
+<pre><code class="language-kotlin">// data/DummyMovies.kt
+val dummyMovies = listOf(
+    Movie("Minecraft", 9.0),
+    Movie("Dune", 8.7),
+    Movie("Interstellar", 9.3),
+    Movie("Inception", 8.8),
+    Movie("The Matrix", 8.7)
+)</code></pre>
+  <div class="key-idea key-amber">💡 Tener los datos en un archivo aparte facilita reemplazarlos después por una API real <strong>sin tocar el ViewModel ni la View</strong>.</div>
+</section>
+
+<!-- ══ 13. FLUJO DE INFORMACIÓN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Implementación</span>
+  <h2>¿Cómo fluyen los datos en MVVM?</h2>
+  <p>Antes de meternos en el ViewModel, hay un concepto clave: en MVVM la información tiene <strong>una sola dirección</strong>.</p>
+  <div style="display:flex; flex-direction:column; align-items:center; gap:0; margin:0.5em auto; max-width:60%">
+    <div style="background:var(--blue-mid); color:#fff; padding:0.7em 2em; border-radius:10px; font-weight:700; font-size:0.7em; min-width:200px; text-align:center">
+      ViewModel
+    </div>
+    <div style="display:flex; align-items:center; gap:50px; padding:0.4em 0">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:2px">
+        <div style="font-size:0.45em; font-weight:700; color:var(--green-dark); text-transform:uppercase; letter-spacing:0.06em">estado</div>
+        <div style="font-size:1.5em; color:var(--green-mid); line-height:0.8">↓</div>
+        <div style="font-size:0.4em; color:#666; font-style:italic">lista de películas</div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:2px">
+        <div style="font-size:0.4em; color:#666; font-style:italic">click del usuario</div>
+        <div style="font-size:1.5em; color:var(--amber-mid); line-height:0.8">↑</div>
+        <div style="font-size:0.45em; font-weight:700; color:var(--amber-dark); text-transform:uppercase; letter-spacing:0.06em">eventos</div>
+      </div>
+    </div>
+    <div style="background:var(--green-mid); color:#fff; padding:0.7em 2em; border-radius:10px; font-weight:700; font-size:0.7em; min-width:200px; text-align:center">
+      View
+    </div>
+  </div>
+  <div class="key-idea key-blue">💡 Esto se llama <strong>flujo unidireccional de datos</strong>. El estado fluye hacia abajo, los eventos fluyen hacia arriba. Para que esto funcione, necesitamos una variable especial que la View pueda <strong>observar</strong>.</div>
+</section>
+
+<!-- ══ 14. STATEFLOW ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Implementación</span>
+  <h2>StateFlow — el puente reactivo</h2>
+  <p>Esa variable especial se llama <strong>StateFlow</strong>. Es parte de Kotlin Coroutines.</p>
+  <p>StateFlow es una variable que <strong>siempre tiene un valor</strong> y notifica a quien la observe cuando cambia.</p>
+  <div class="key-idea key-blue" style="background:#fafafa; border-color:#aaa; color:#333; font-style:italic; font-weight:400">
+    🎬 Pensalo así: en YouTube, te suscribís a un canal y cuando sube un video nuevo te llega la notificación automáticamente. No tenés que ir a revisar todos los días. <strong>StateFlow funciona igual</strong>: la View se "suscribe" al ViewModel y recibe avisos cuando los datos cambian.
+  </div>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Siempre tiene un valor inicial — ideal para representar estado.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Compose se recompone <strong>automáticamente</strong> cuando el valor cambia.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Es seguro para múltiples hilos y trabaja bien con corrutinas.</div></div>
+  </div>
+</section>
+
+<!-- ══ 15. PATRÓN DE ENCAPSULAMIENTO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Implementación</span>
+  <h2>Mutable vs Inmutable</h2>
+  <p>StateFlow tiene <strong>dos versiones</strong>, y se usan juntas con un patrón muy específico:</p>
+  <div class="mvvm-pieces">
+    <div class="piece">
+      <div class="piece-tag" style="background:#FCEBEB; color:#791F1F">privado</div>
+      <div class="piece-text"><ic>MutableStateFlow</ic> — la versión <strong>modificable</strong>. Solo el ViewModel la puede cambiar. Por convención se le pone guion bajo: <ic>_movies</ic></div>
+    </div>
+    <div class="piece">
+      <div class="piece-tag" style="background:#EAF3DE; color:#27500A">público</div>
+      <div class="piece-text"><ic>StateFlow</ic> — la versión <strong>solo lectura</strong>. Lo que la View puede observar pero no modificar. Sin guion bajo: <ic>movies</ic></div>
+    </div>
+  </div>
+<pre><code class="language-kotlin">private val _movies = MutableStateFlow&lt;List&lt;Movie&gt;&gt;(dummyMovies)
+val movies = _movies.asStateFlow()</code></pre>
+  <div class="key-idea key-blue">💡 Esto se llama <strong>patrón de encapsulamiento</strong>. Garantiza que <strong>solo el ViewModel</strong> pueda cambiar el estado. La View solo lo observa. <ic>asStateFlow()</ic> hace la conversión de mutable a inmutable.</div>
+</section>
+
+<!-- ══ 16. EL VIEWMODEL SIMPLE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Implementación</span>
+  <h2>El ViewModel</h2>
+  <p>Ahora que entendemos StateFlow, el ViewModel se vuelve simple. Mantiene el estado y lo expone a la View.</p>
+<pre><code class="language-kotlin">// screens/MovieList/MovieListViewModel.kt
+class MovieListViewModel : ViewModel() {
+
+    private val _movies = MutableStateFlow&lt;List&lt;Movie&gt;&gt;(dummyMovies)
+    val movies = _movies.asStateFlow()
+}</code></pre>
+  <div class="key-idea key-blue">💡 Eso es todo el ViewModel por ahora. Tiene el estado privado, lo expone como inmutable, y los datos están listos. <strong>Es el patrón completo aplicado.</strong></div>
+</section>
+
+<!-- ══ 15. LA VIEW ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Implementación</span>
+  <h2>La View</h2>
+  <p>La View observa el StateFlow del ViewModel con <ic>collectAsState</ic> y se recompone cuando los datos cambian.</p>
+<pre><code class="language-kotlin">// screens/MovieList/MovieListScreen.kt
+@Composable
+fun MovieListScreen(
+    viewModel: MovieListViewModel = viewModel()
+) {
+    val movies by viewModel.movies.collectAsState()
+
+    LazyColumn {
+        items(movies) { movie ->
+            Text("${movie.title} - ${movie.rating}")
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-green">💡 La View <strong>no carga datos, no decide nada</strong>. Solo observa al ViewModel y muestra lo que ve. Si los datos cambian, Compose se recompone automáticamente.</div>
+</section>
+
+<!-- ══ 16. BENEFICIOS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Cierre</span>
+  <h2>¿Qué ganamos con MVVM?</h2>
+  <p>Volvamos al código del inicio. Compará lo que teníamos con lo que tenemos ahora.</p>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El ViewModel sobrevive a la rotación</strong> — los datos no se pierden cuando el usuario gira la pantalla.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>La lógica está separada de la UI</strong> — podemos testear el ViewModel sin renderizar nada.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Los datos son reactivos</strong> — la UI se actualiza sola cuando cambian.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Sabemos dónde buscar cada cosa</strong> — model, screens, viewmodel.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Es lo que la industria usa</strong> — 76% de los proyectos Android en producción.</div></div>
+  </div>
+  <div class="key-idea key-green">💡 El código no es más corto. Pero es <strong>infinitamente más mantenible</strong> cuando la app crece.</div>
+</section>
+
+<!-- ══ 17. LO QUE VIENE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Lo que viene</span>
+  <h2>Hasta acá vimos la Capa de UI</h2>
+  <p>Hoy aprendimos a organizar la capa de UI con MVVM. Pero los datos siguen hardcoded en una variable.</p>
+  <p>En una app real, los datos vienen de algún lado: una API, una base de datos, archivos.</p>
+  <div class="next-class">
+    <h3>Próxima clase</h3>
+    <p>Vamos a ver la <strong>Capa de Datos</strong>: cómo organizar de dónde vienen los datos con el patrón <strong>Repository</strong>, qué son las <strong>corrutinas</strong>, y cómo manejar operaciones que toman tiempo sin bloquear la app.</p>
+    <span class="next-tag">Capa de Datos + Repository + Coroutines</span>
+  </div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
