@@ -474,7 +474,31 @@ class MovieListViewModel : ViewModel() {
   <div class="key-idea key-blue">💡 Eso es todo el ViewModel por ahora. Tiene el estado privado, lo expone como inmutable, y los datos están listos. <strong>Es el patrón completo aplicado.</strong></div>
 </section>
 
-<!-- ══ 15. LA VIEW ══ -->
+<!-- ══ NUEVO: CÓMO SE CONECTA LA VIEW CON EL VIEWMODEL ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Implementación</span>
+  <h2>Cómo se conecta la View con el ViewModel</h2>
+  <p>Antes de ver la View, hay dos cosas en su código que vale la pena explicar:</p>
+
+  <div class="mvvm-pieces">
+    <div class="piece">
+      <div class="piece-tag" style="background:#E6F1FB; color:#0C447C; min-width:120px"><ic style="background:transparent">viewModel()</ic></div>
+      <div class="piece-text">
+        Se pasa <strong>como parámetro con valor por defecto</strong>, no se instancia adentro. Esto es el principio de <strong>Inversión de Dependencias</strong> de SOLID: la View no decide qué ViewModel usar, lo recibe. Por defecto Compose se encarga de crear/recuperar el correcto (sobrevive a la rotación), pero si necesitamos podemos pasarle uno distinto — uno falso para tests, uno con datos hardcoded para Previews. <strong>Flexible y testeable.</strong>
+      </div>
+    </div>
+    <div class="piece">
+      <div class="piece-tag" style="background:#EAF3DE; color:#27500A; min-width:120px"><ic style="background:transparent">collectAsState()</ic></div>
+      <div class="piece-text">
+        StateFlow es de Kotlin Coroutines, no de Compose. <ic>collectAsState()</ic> traduce el StateFlow a algo que Compose entiende. Cuando el StateFlow cambia, esta variable se actualiza y <strong>Compose se recompone automáticamente</strong>.
+      </div>
+    </div>
+  </div>
+
+  <div class="key-idea key-green">💡 Es como una invitación de boda que dice "venga con un acompañante" — no obliga a una persona específica. La View dice "necesito un ViewModel" pero no obliga a uno particular. <strong>Quien la llama decide.</strong></div>
+</section>
+
+<!-- ══ 16. LA VIEW ══ -->
 <section data-background-color="#ffffff">
   <span class="tag tag-green">Implementación</span>
   <h2>La View</h2>
