@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capa de Datos + Repository — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+pre[class*="language-"] { font-size:0.42em !important; line-height:1.55; border-radius:8px; padding:0.9em 1.1em !important; margin:0.3em 0 !important; max-height:480px; overflow:auto; background:#fafafa !important; border:1px solid #e0e0e0; }
+code[class*="language-"] { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#888; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+.problems { display:flex; flex-direction:column; gap:8px; margin-top:0.3em; }
+.problem { display:flex; gap:11px; align-items:flex-start; background:var(--red-bg); border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--red-mid); }
+.p-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--red-dark); font-weight:700; }
+.p-text { font-size:0.6em; color:#222; line-height:1.55; }
+.p-text strong { color:var(--red-dark); }
+
+.benefits { display:flex; flex-direction:column; gap:7px; margin-top:0.3em; }
+.benefit { display:flex; gap:11px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--green-mid); }
+.b-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--green-dark); font-weight:700; }
+.b-text { font-size:0.58em; color:#222; line-height:1.55; }
+.b-text strong { color:#000; }
+
+.flow-diagram { background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:0.8em; margin:0.4em auto; max-width:88%; }
+.flow-row { display:flex; justify-content:center; align-items:center; gap:14px; }
+.flow-box { padding:0.5em 1em; border-radius:8px; font-size:0.55em; font-weight:700; color:#fff; min-width:90px; text-align:center; }
+.flow-box.view { background:var(--green-mid); }
+.flow-box.vm { background:var(--blue-mid); }
+.flow-box.repo { background:var(--purple-dark); }
+.flow-box.data { background:#444; }
+.flow-arrow { font-size:0.7em; color:#999; }
+.flow-label { font-size:0.4em; color:#666; text-align:center; margin-top:3px; font-style:italic; }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.next-class { background:#1a1a1a; color:#fff; border-radius:10px; padding:1em 1.3em; max-width:85%; margin:0.4em auto; }
+.next-class h3 { font-size:0.65em; font-weight:700; color:#fff; margin:0 0 0.4em; text-transform:uppercase; letter-spacing:0.06em; }
+.next-class p { color:#ddd; font-size:0.55em; line-height:1.55; margin:0 0 0.3em; }
+.next-class .next-tag { display:inline-block; background:#3C3489; padding:3px 11px; border-radius:6px; font-size:0.45em; font-weight:600; margin-top:0.4em; }
+
+.layer-detail { background:#fafafa; border:2px solid var(--purple-dark); border-radius:12px; padding:0.9em 1.1em; max-width:75%; margin:0.4em auto; }
+.layer-detail-title { font-size:0.7em; font-weight:700; color:var(--purple-dark); text-align:center; margin-bottom:0.4em; }
+.layer-inner { background:#fff; border-radius:6px; padding:0.5em 0.9em; margin:0.3em 0; font-size:0.55em; text-align:center; font-weight:600; }
+.layer-inner.green { background:#EAF3DE; color:#27500A; }
+.layer-inner.lblue { background:#E6F1FB; color:#0C447C; }
+
+.recap-box { background:#f7f7f7; border-radius:10px; padding:1em 1.2em; max-width:80%; margin:0.4em auto; }
+.recap-title { font-size:0.6em; font-weight:700; color:#1a1a1a; margin-bottom:0.4em; }
+.recap-flow { display:flex; align-items:center; justify-content:center; gap:10px; margin:0.4em 0; }
+.recap-piece { padding:0.45em 0.85em; border-radius:6px; font-size:0.52em; font-weight:700; color:#fff; }
+.recap-piece.m { background:var(--amber-mid); }
+.recap-piece.v { background:var(--green-mid); }
+.recap-piece.vm { background:var(--blue-mid); }
+.recap-arrow { font-size:0.7em; color:#999; }
+.recap-pending { font-size:0.5em; color:#888; font-style:italic; text-align:center; margin-top:0.3em; }
+
+.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:0.3em; }
+.compare-card { background:#f7f7f7; border-radius:10px; padding:0.7em 0.9em; border-top:3px solid; }
+.compare-card.opt1 { border-color:var(--blue-mid); }
+.compare-card.opt2 { border-color:var(--green-mid); }
+.compare-card-title { font-size:0.55em; font-weight:700; margin-bottom:0.3em; }
+.compare-card-title.opt1 { color:var(--blue-dark); }
+.compare-card-title.opt2 { color:var(--green-dark); }
+.compare-pros { font-size:0.45em; color:var(--green-dark); margin-top:0.2em; }
+.compare-cons { font-size:0.45em; color:var(--red-dark); margin-top:0.15em; }
+
+.api-card { background:#1a1a1a; color:#fff; border-radius:10px; padding:1em 1.2em; max-width:75%; margin:0.4em auto; }
+.api-card-tag { display:inline-block; background:#01D277; color:#000; padding:3px 10px; border-radius:6px; font-size:0.45em; font-weight:700; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.05em; }
+.api-card-title { font-size:0.7em; font-weight:700; color:#fff; margin:0.2em 0 }
+.api-card-desc { font-size:0.5em; color:#ddd; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <h1 style="font-size:1.8em">Capa de Datos + Repository</h1>
+  <p style="font-size:0.65em; color:#888">Cómo manejar datos que vienen de afuera</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"La capa de datos contiene la lógica de negocio. Es lo que le da valor a tu app"</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. RECORDATORIO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-gray">Recordatorio</span>
+  <h2>¿Dónde quedamos la clase pasada?</h2>
+  <p>Vimos cómo organizar la <strong>capa de UI</strong> con MVVM:</p>
+
+  <div style="background:#f7f7f7; border-radius:12px; padding:1.2em 1.4em; max-width:75%; margin:0.5em auto">
+    <div style="font-size:0.55em; font-weight:700; color:#1a1a1a; text-align:center; margin-bottom:0.6em; text-transform:uppercase; letter-spacing:0.06em">Capa de UI</div>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:1em">
+      <div style="background:var(--green-mid); color:#fff; padding:0.5em 1.1em; border-radius:8px; font-weight:700; font-size:0.6em">View</div>
+      <span style="font-size:0.9em; color:#888; font-weight:700">↔</span>
+      <div style="background:var(--blue-mid); color:#fff; padding:0.5em 1.1em; border-radius:8px; font-weight:700; font-size:0.6em">ViewModel</div>
+      <span style="font-size:0.9em; color:#888; font-weight:700">↔</span>
+      <div style="background:var(--amber-mid); color:#fff; padding:0.5em 1.1em; border-radius:8px; font-weight:700; font-size:0.6em">Model</div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+      <div style="font-size:1.3em; color:var(--red-mid); line-height:0.7">↓</div>
+      <div style="background:var(--red-bg); border:2px dashed var(--red-mid); border-radius:8px; padding:0.5em 1em; font-family:'Fira Code',monospace; font-size:0.55em; color:var(--red-dark); font-weight:700">
+        dummyMovies
+      </div>
+      <div style="font-size:0.45em; color:var(--red-dark); font-style:italic; margin-top:0.3em">datos hardcoded — ¿de dónde vienen los datos en una app real?</div>
+    </div>
+  </div>
+
+  <div class="key-idea key-purple">💡 Hoy reemplazamos los datos hardcoded por una <strong>Capa de Datos</strong> real con el patrón <strong>Repository</strong>.</div>
+</section>
+
+<!-- ══ 3. EL PROBLEMA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-red">El problema</span>
+  <h2>Los datos no son hardcoded en la vida real</h2>
+  <p>Hasta ahora teníamos los datos así:</p>
+<pre><code class="language-kotlin">// data/DummyMovies.kt
+val dummyMovies = listOf(
+    Movie("Minecraft", 9.0),
+    Movie("Dune", 8.7),
+    Movie("Interstellar", 9.3)
+)</code></pre>
+  <p>Pero en una app real los datos vienen de afuera. ¿De dónde?</p>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">→</div><div class="b-text"><strong>Una API</strong> — un servidor en internet que devuelve datos.</div></div>
+    <div class="benefit"><div class="b-icon">→</div><div class="b-text"><strong>Una base de datos local</strong> — guardada en el celular.</div></div>
+    <div class="benefit"><div class="b-icon">→</div><div class="b-text"><strong>Archivos</strong> del dispositivo, caché, o varios a la vez.</div></div>
+  </div>
+  <div class="key-idea key-red">💡 Si el ViewModel sabe directamente de dónde vienen los datos, <strong>se acopla a esa fuente</strong>. Cambiarla después se vuelve un infierno.</div>
+</section>
+
+<!-- ══ 4. CAPA DE DATOS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Capa de Datos</span>
+  <h2>Capa de Datos</h2>
+  <p>La capa de datos contiene la <em>lógica empresarial</em>. Esta lógica es lo que le da valor a la app, y está compuesta por reglas que determinan cómo la app crea, almacena y cambia datos.</p>
+  <p>Está formada por <strong>repositorios</strong> que pueden contener de cero a muchas fuentes de datos. Por ejemplo, una clase <ic>MoviesRepository</ic> para datos de películas o <ic>PaymentsRepository</ic> para datos de pagos.</p>
+  <div class="layer-detail">
+    <div class="layer-detail-title">Data Layer</div>
+    <div class="layer-inner green">Repositories</div>
+    <div style="text-align:center; color:#aaa; font-size:0.55em; line-height:0.4">↓</div>
+    <div class="layer-inner lblue">Data Sources</div>
+  </div>
+  <div class="key-idea key-purple">💡 El Repository es <strong>el único que sabe de dónde vienen los datos realmente</strong>: una API, una base de datos, archivos, o todo a la vez.</div>
+</section>
+
+<!-- ══ 5. POR QUÉ EL REPOSITORY ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Repository</span>
+  <h2>El patrón Repository</h2>
+  <p>El Repository es <strong>una capa que abstrae de dónde vienen los datos</strong>. Conecta la capa de UI con las fuentes de datos reales (locales o remotas).</p>
+
+  <div style="background:#fafafa; border:1px solid #e0e0e0; border-radius:12px; padding:0.8em 1em; max-width:90%; margin:0.4em auto">
+
+    <!-- UI LAYER -->
+    <div style="background:#EAF3DE; border-radius:10px; padding:0.55em 0.8em; margin-bottom:0.4em">
+      <div style="font-size:0.42em; font-weight:700; color:#27500A; text-transform:uppercase; letter-spacing:0.05em; text-align:center; margin-bottom:0.35em">UI Layer</div>
+      <div style="display:flex; justify-content:center; align-items:center; gap:10px">
+        <div style="background:var(--green-mid); color:#fff; padding:0.4em 0.9em; border-radius:6px; font-weight:700; font-size:0.5em; min-width:80px; text-align:center">View</div>
+        <span style="font-size:0.7em; color:#888">↔</span>
+        <div style="background:var(--blue-mid); color:#fff; padding:0.4em 0.9em; border-radius:6px; font-weight:700; font-size:0.5em; min-width:90px; text-align:center">ViewModel</div>
+      </div>
+    </div>
+
+    <div style="text-align:center; color:#999; font-size:0.7em; line-height:0.5">↓</div>
+
+    <!-- DATA LAYER -->
+    <div style="background:#EEEDFE; border-radius:10px; padding:0.55em 0.8em; margin-top:0.4em">
+      <div style="font-size:0.42em; font-weight:700; color:#3C3489; text-transform:uppercase; letter-spacing:0.05em; text-align:center; margin-bottom:0.35em">Data Layer</div>
+
+      <!-- Repository -->
+      <div style="display:flex; justify-content:center; margin-bottom:0.4em">
+        <div style="background:var(--purple-dark); color:#fff; padding:0.5em 1.4em; border-radius:6px; font-weight:700; font-size:0.5em; min-width:140px; text-align:center">Repository</div>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:60px; margin:0 auto; max-width:80%">
+        <div style="font-size:0.7em; color:#999; line-height:0.5">↓</div>
+        <div style="font-size:0.7em; color:#999; line-height:0.5">↓</div>
+      </div>
+
+      <!-- Data Sources -->
+      <div style="display:flex; justify-content:center; gap:30px; margin-top:0.35em">
+        <div style="background:#444; color:#fff; padding:0.4em 0.9em; border-radius:6px; font-weight:700; font-size:0.48em; min-width:120px; text-align:center">
+          Local DB
+          <div style="font-size:0.7em; font-weight:400; color:#bbb; margin-top:1px">Room, DataStore</div>
+        </div>
+        <div style="background:#444; color:#fff; padding:0.4em 0.9em; border-radius:6px; font-weight:700; font-size:0.48em; min-width:120px; text-align:center">
+          Remote API
+          <div style="font-size:0.7em; font-weight:400; color:#bbb; margin-top:1px">Ktor, Retrofit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Model como etiqueta lateral -->
+    <div style="background:var(--amber-bg); border:1px dashed var(--amber-mid); border-radius:8px; padding:0.4em 0.9em; max-width:75%; margin:0.5em auto 0; text-align:center; font-size:0.45em; color:var(--amber-dark); font-weight:600">
+      📦 Model (Movie) — el dato que viaja por todas las capas
+    </div>
+  </div>
+
+  <div class="key-idea key-purple">💡 Si mañana cambiamos de una API a Firebase, <strong>solo cambia el Repository</strong>. El ViewModel y la View siguen igual. Eso es lo que hace al código <strong>mantenible</strong>.</div>
+</section>
+
+<!-- ══ 6. IMPLEMENTACIÓN: INTERFACE + IMPL ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Repository</span>
+  <h2>Interface + Implementación</h2>
+  <p>Definimos primero una <strong>interface</strong> que dice "qué se puede hacer", y después una <strong>implementación</strong> que dice "cómo se hace".</p>
+<pre><code class="language-kotlin">// data/repository/MovieRepository.kt
+interface MovieRepository {
+    suspend fun getMovies(): List&lt;Movie&gt;
+}
+
+// data/repository/MovieRepositoryImpl.kt
+class MovieRepositoryImpl : MovieRepository {
+    override suspend fun getMovies(): List&lt;Movie&gt; {
+        delay(2000) // simula que tarda 2 segundos
+        return dummyMovies
+    }
+}</code></pre>
+  <div class="key-idea key-purple">💡 La interface es <strong>el contrato</strong>: lo que se promete. La implementación es <strong>cómo se cumple esa promesa</strong>. Si mañana cambiamos a Ktor, solo creamos otra implementación. La interface no se toca.</div>
+</section>
+
+<!-- ══ 7. SUSPEND ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Corrutinas</span>
+  <h2>La palabra <ic>suspend</ic></h2>
+  <p>Fíjense en la firma de la función:</p>
+<pre><code class="language-kotlin">suspend fun getMovies(): List&lt;Movie&gt;</code></pre>
+  <p>La palabra <strong><ic>suspend</ic></strong> indica que la función <strong>puede tomar tiempo</strong>. Por ejemplo, una llamada a internet puede tardar 2 segundos en responder.</p>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>No bloquea el hilo principal.</strong> Mientras espera la respuesta, la app sigue respondiendo a clicks y animaciones.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Solo se puede llamar desde una corrutina</strong> u otra función <ic>suspend</ic>. Es una regla de Kotlin.</div></div>
+  </div>
+  <div class="key-idea key-blue">💡 Sin <ic>suspend</ic>, si la API tarda 5 segundos, la app se congela 5 segundos. Con <ic>suspend</ic>, la espera es <strong>asíncrona</strong> y la UI sigue fluida.</div>
+</section>
+
+<!-- ══ 8. VIEWMODEL SCOPE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Corrutinas</span>
+  <h2>¿Cómo llamamos una función <ic>suspend</ic>?</h2>
+  <p>Una función <ic>suspend</ic> solo se puede llamar desde dentro de una <strong>corrutina</strong>. En el ViewModel, las corrutinas se crean con <ic>viewModelScope.launch</ic>.</p>
+<pre><code class="language-kotlin">fun loadMovies() {
+    viewModelScope.launch {
+        // adentro del launch sí podemos llamar funciones suspend
+        val movies = movieRepository.getMovies()
+        _movies.value = movies
+    }
+}</code></pre>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><ic>viewModelScope</ic> está atado al ciclo de vida del ViewModel. Si el ViewModel se destruye, la corrutina se cancela automáticamente.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><ic>launch</ic> inicia la corrutina y libera el hilo. El código de adentro corre "en paralelo" sin bloquear nada.</div></div>
+  </div>
+  <div class="key-idea key-blue">💡 Sin <ic>viewModelScope.launch</ic>, no podemos llamar <ic>suspend fun getMovies()</ic>. Es la "puerta de entrada" al mundo asíncrono desde el ViewModel.</div>
+</section>
+
+<!-- ══ 9. VIEWMODEL CON REPOSITORY ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Implementación</span>
+  <h2>El ViewModel actualizado</h2>
+  <p>Ahora el ViewModel le pide los datos al Repository. Mientras llegan, expone un estado de <ic>loading</ic> para que la View muestre un indicador.</p>
+<pre><code class="language-kotlin">// screens/MovieList/MovieListViewModel.kt
+class MovieListViewModel : ViewModel() {
+
+    val movieRepository: MovieRepository = MovieRepositoryImpl()
+
+    private val _movies = MutableStateFlow&lt;List&lt;Movie&gt;&gt;(emptyList())
+    val movies = _movies.asStateFlow()
+
+    private val _loading = MutableStateFlow(false)
+    val loading = _loading.asStateFlow()
+
+    fun loadMovies() {
+        viewModelScope.launch {
+            _loading.value = true
+            _movies.value = movieRepository.getMovies()
+            _loading.value = false
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-blue">💡 Tres estados expuestos: lista vacía al inicio, <ic>loading</ic> en true mientras carga, y la lista llena cuando llegan los datos. <strong>La View no necesita saber nada del Repository.</strong></div>
+</section>
+
+<!-- ══ 10. VIEW ACTUALIZADA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Implementación</span>
+  <h2>La View actualizada</h2>
+  <p>Ahora la View también observa el estado de <ic>loading</ic> y muestra un indicador mientras llegan los datos.</p>
+<pre><code class="language-kotlin">// screens/MovieList/MovieListScreen.kt
+@Composable
+fun MovieListScreen(
+    viewModel: MovieListViewModel = viewModel()
+) {
+    val movies by viewModel.movies.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+
+    if (loading) {
+        CircularProgressIndicator()
+        return
+    }
+
+    LazyColumn {
+        items(movies) { movie ->
+            Text("${movie.title} - ${movie.rating}")
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-green">💡 La View sigue siendo simple: <strong>solo observa estado y muestra UI</strong>. Si carga, muestra indicador. Si no, muestra la lista. <strong>Sin lógica de carga.</strong></div>
+</section>
+
+<!-- ══ 11. EL PROBLEMA DEL DISPARO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Pregunta clave</span>
+  <h2>¿Quién dispara <ic>loadMovies()</ic>?</h2>
+  <p>Tenemos el ViewModel listo. Tenemos la View lista. Pero <strong>nadie está llamando a <ic>loadMovies()</ic></strong>. La función existe, pero nadie la ejecuta.</p>
+  <p>Hay dos formas de hacerlo, y cada una tiene su uso. Vamos a verlas las dos.</p>
+  <div class="key-idea key-amber">💡 Esta decisión parece pequeña pero tiene impacto: define <strong>cuándo</strong> se ejecuta la carga y <strong>quién</strong> tiene el control.</div>
+</section>
+
+<!-- ══ 12. OPCIÓN 1: INIT ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Opción 1</span>
+  <h2>Cargar desde el <ic>init</ic> del ViewModel</h2>
+  <p>El ViewModel dispara la carga apenas se crea. Se hace en el bloque <ic>init</ic>.</p>
+<pre><code class="language-kotlin">class MovieListViewModel : ViewModel() {
+
+    private val _movies = MutableStateFlow&lt;List&lt;Movie&gt;&gt;(emptyList())
+    val movies = _movies.asStateFlow()
+
+    init {
+        loadMovies()  // ← se llama al crear el ViewModel
+    }
+
+    fun loadMovies() {
+        viewModelScope.launch {
+            _movies.value = movieRepository.getMovies()
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-blue">💡 La carga ocurre <strong>cuando el ViewModel se crea</strong>. Como el ViewModel sobrevive a la rotación, la carga no se repite. Funciona, pero la View no tiene control sobre cuándo cargar.</div>
+</section>
+
+<!-- ══ 13. OPCIÓN 2: LAUNCHED EFFECT ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Opción 2</span>
+  <h2>Cargar desde la View con <ic>LaunchedEffect</ic></h2>
+  <p>La View le avisa al ViewModel "cargá los datos" cuando la pantalla aparece. Se hace con <ic>LaunchedEffect</ic>.</p>
+<pre><code class="language-kotlin">@Composable
+fun MovieListScreen(
+    viewModel: MovieListViewModel = viewModel()
+) {
+    val movies by viewModel.movies.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadMovies()  // ← se llama al entrar a la pantalla
+    }
+
+    LazyColumn { /* ... */ }
+}</code></pre>
+  <div class="key-idea key-green">💡 <ic>LaunchedEffect(Unit)</ic> ejecuta el bloque <strong>una sola vez</strong> cuando el composable aparece. Coherente con el flujo unidireccional: la View envía un evento ("cargá") al ViewModel.</div>
+</section>
+
+<!-- ══ 14. COMPARACIÓN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Comparación</span>
+  <h2>¿Cuál usar?</h2>
+  <div class="compare-grid">
+    <div class="compare-card opt1">
+      <div class="compare-card-title opt1">📦 init del ViewModel</div>
+      <div class="compare-pros">✓ Se ejecuta una sola vez en la vida del ViewModel</div>
+      <div class="compare-pros">✓ Sobrevive a rotación Y navegación</div>
+      <div class="compare-pros">✓ Más simple de escribir</div>
+      <div class="compare-cons">✗ Difícil si la carga depende de parámetros</div>
+    </div>
+    <div class="compare-card opt2">
+      <div class="compare-card-title opt2">🎯 LaunchedEffect</div>
+      <div class="compare-pros">✓ La View controla cuándo cargar</div>
+      <div class="compare-pros">✓ Funciona con parámetros: <ic>LaunchedEffect(id)</ic></div>
+      <div class="compare-cons">✗ Se vuelve a disparar al volver a la pantalla</div>
+      <div class="compare-cons">✗ Puede causar recargas innecesarias</div>
+    </div>
+  </div>
+  <div class="key-idea key-amber">💡 Las dos funcionan. <strong>Por defecto usen <ic>init</ic></strong> porque es más seguro: el ViewModel se crea una sola vez, así que la carga ocurre una sola vez. <strong>Usen <ic>LaunchedEffect</ic> cuando la carga dependa de un parámetro que pueda cambiar</strong> (ejemplo: cargar el detalle de una película según su ID).</div>
+</section>
+
+<!-- ══ 15. BENEFICIOS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Cierre</span>
+  <h2>¿Qué ganamos con la Capa de Datos?</h2>
+  <p>Comparemos con lo que teníamos al inicio de la clase pasada.</p>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El ViewModel no sabe de dónde vienen los datos</strong> — solo se los pide al Repository.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Cambiar la fuente es fácil</strong> — solo se modifica el Repository, ni la View ni el ViewModel se tocan.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El estado de carga es explícito</strong> — la UI puede mostrar indicadores mientras los datos llegan.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Las operaciones lentas no congelan la app</strong> — gracias a <ic>suspend</ic> y <ic>viewModelScope</ic>.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El código está separado por responsabilidad</strong> — cada capa hace lo suyo y nada más.</div></div>
+  </div>
+  <div class="key-idea key-green">💡 Ya tienen <strong>MVVM completo</strong>: capa de UI + capa de datos. Esto es lo que se usa en producción.</div>
+</section>
+
+<!-- ══ 16. LO QUE VIENE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Lo que viene</span>
+  <h2>De datos simulados a datos reales</h2>
+  <p>Hoy nuestro Repository devuelve datos hardcoded con un <ic>delay</ic>. Pero en una app real, esos datos vienen de <strong>internet</strong>.</p>
+  <p>La próxima clase vamos a hacer que el Repository consuma una <strong>API real</strong>: TMDB (The Movie Database) — la base de datos de películas más grande del mundo.</p>
+  <div class="api-card">
+    <div class="api-card-tag">Próxima clase</div>
+    <div class="api-card-title">🎬 TMDB + Ktor</div>
+    <div class="api-card-desc">Vamos a usar <strong>Ktor</strong>, el cliente HTTP nativo de Kotlin, para consumir la API de TMDB. Datos reales, imágenes reales, una app que se siente profesional.</div>
+  </div>
+  <div class="key-idea key-purple">💡 Lo mejor de todo: <strong>solo tenemos que cambiar el Repository</strong>. El ViewModel y la View no se tocan. Esa es la magia de tener bien separadas las capas.</div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
