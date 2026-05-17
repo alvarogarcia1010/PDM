@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consumir una API con Ktor — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+pre[class*="language-"] { font-size:0.4em !important; line-height:1.5; border-radius:8px; padding:0.85em 1em !important; margin:0.3em 0 !important; max-height:490px; overflow:auto; background:#fafafa !important; border:1px solid #e0e0e0; }
+code[class*="language-"] { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#888; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+.problems { display:flex; flex-direction:column; gap:8px; margin-top:0.3em; }
+.problem { display:flex; gap:11px; align-items:flex-start; background:var(--red-bg); border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--red-mid); }
+.p-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--red-dark); font-weight:700; }
+.p-text { font-size:0.6em; color:#222; line-height:1.55; }
+.p-text strong { color:var(--red-dark); }
+
+.benefits { display:flex; flex-direction:column; gap:7px; margin-top:0.3em; }
+.benefit { display:flex; gap:11px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--green-mid); }
+.b-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--green-dark); font-weight:700; }
+.b-text { font-size:0.58em; color:#222; line-height:1.55; }
+.b-text strong { color:#000; }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.next-class { background:#1a1a1a; color:#fff; border-radius:10px; padding:1em 1.3em; max-width:85%; margin:0.4em auto; }
+.next-class h3 { font-size:0.65em; font-weight:700; color:#fff; margin:0 0 0.4em; text-transform:uppercase; letter-spacing:0.06em; }
+.next-class p { color:#ddd; font-size:0.55em; line-height:1.55; margin:0 0 0.3em; }
+.next-class .next-tag { display:inline-block; background:#3C3489; padding:3px 11px; border-radius:6px; font-size:0.45em; font-weight:600; margin-top:0.4em; }
+
+.flow-diagram { background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:0.8em; margin:0.4em auto; max-width:90%; }
+.flow-row { display:flex; justify-content:center; align-items:center; gap:12px; }
+.flow-box { padding:0.5em 0.9em; border-radius:8px; font-size:0.52em; font-weight:700; color:#fff; text-align:center; }
+.flow-box.app { background:var(--blue-mid); }
+.flow-box.net { background:#444; }
+.flow-box.api { background:var(--green-mid); }
+.flow-arrow { font-size:0.6em; color:#999; }
+.flow-label { font-size:0.4em; color:#666; text-align:center; margin-top:3px; font-style:italic; }
+
+.json-box { background:#1e1e1e; border-radius:8px; padding:0.8em 1em; font-family:'Fira Code',monospace; font-size:0.42em; line-height:1.5; color:#d4d4d4; margin:0.3em auto; max-width:80%; text-align:left; }
+.json-key { color:#9CDCFE; }
+.json-str { color:#CE9178; }
+.json-num { color:#B5CEA8; }
+.json-punct { color:#808080; }
+
+.demo-card { background:#1a1a1a; color:#fff; border-radius:12px; padding:1.1em 1.4em; max-width:80%; margin:0.4em auto; }
+.demo-card-tag { display:inline-block; background:#5849BE; color:#fff; padding:3px 11px; border-radius:6px; font-size:0.42em; font-weight:700; margin-bottom:0.4em; text-transform:uppercase; letter-spacing:0.06em; }
+.demo-card h3 { font-size:0.7em; font-weight:700; color:#fff; margin:0.2em 0; }
+.demo-card p { color:#ccc; font-size:0.52em; line-height:1.5; }
+
+.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:0.3em; }
+.compare-card { background:#f7f7f7; border-radius:10px; padding:0.7em 0.9em; border-top:3px solid; }
+.compare-card.before { border-color:var(--red-mid); }
+.compare-card.after { border-color:var(--green-mid); }
+.compare-card-title { font-size:0.52em; font-weight:700; margin-bottom:0.3em; }
+.compare-card-title.before { color:var(--red-dark); }
+.compare-card-title.after { color:var(--green-dark); }
+
+.err-list { display:flex; flex-direction:column; gap:8px; margin-top:0.3em; }
+.err-item { background:#f7f7f7; border-radius:8px; padding:0.55em 0.9em; border-left:3px solid var(--amber-mid); }
+.err-name { font-family:'Fira Code',monospace; font-size:0.5em; font-weight:700; color:var(--red-dark); }
+.err-fix { font-size:0.5em; color:#444; margin-top:0.2em; }
+.err-fix strong { color:#000; }
+
+.steps { display:flex; flex-direction:column; gap:8px; margin-top:0.3em; }
+.step { display:flex; gap:12px; align-items:flex-start; }
+.step-num { background:var(--purple-dark); color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.5em; font-weight:700; flex-shrink:0; }
+.step-text { font-size:0.56em; color:#222; line-height:1.5; padding-top:1px; }
+.step-text strong { color:#000; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <h1 style="font-size:1.8em">Consumir una API con Ktor</h1>
+  <p style="font-size:0.65em; color:#888">De datos hardcoded a datos reales de internet</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"Una app sin datos reales es solo una maqueta bonita"</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. RECORDATORIO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-gray">Recordatorio</span>
+  <h2>¿Dónde quedamos?</h2>
+  <p>Ya tenemos la arquitectura completa: capa de UI con MVVM y capa de datos con Repository.</p>
+  <div class="flow-diagram">
+    <div class="flow-row">
+      <div class="flow-box app">View</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box app">ViewModel</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box api">Repository</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box net">dummyMovies</div>
+    </div>
+    <div class="flow-label">El Repository devuelve datos hardcoded con un delay que simula la espera.</div>
+  </div>
+  <div class="key-idea key-purple">💡 Hoy damos el último paso: el Repository va a traer los datos de <strong>una API real en internet</strong>. Y lo mejor — el ViewModel y la View <strong>no se van a tocar</strong>.</div>
+</section>
+
+<!-- ══ 3. QUÉ ES UNA API ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">La API</span>
+  <h2>¿Qué es una API?</h2>
+  <p>Una <strong>API</strong> es un servicio en internet que devuelve datos cuando se los pedís. Tu app le hace una <em>petición</em> y la API le responde — normalmente en formato JSON.</p>
+  <div class="flow-diagram">
+    <div class="flow-row">
+      <div class="flow-box app">Tu app</div>
+      <span class="flow-arrow">── petición (GET) ──▶</span>
+      <div class="flow-box api">API de TMDB</div>
+    </div>
+    <div class="flow-row" style="margin-top:6px">
+      <div class="flow-box app">Tu app</div>
+      <span class="flow-arrow">◀── respuesta (JSON) ──</span>
+      <div class="flow-box api">API de TMDB</div>
+    </div>
+    <div class="flow-label">La app pide, la API responde. Toda la comunicación viaja por internet.</div>
+  </div>
+  <div class="benefit" style="display:block; margin-top:0.3em">
+    <div class="b-text" style="margin-bottom:4px"><strong>Endpoint:</strong> una URL específica para pedir algo concreto.</div>
+    <div class="b-text" style="margin-bottom:4px"><strong>JSON:</strong> el formato de texto en que viaja la respuesta.</div>
+    <div class="b-text"><strong>Token:</strong> la credencial que nos identifica ante la API.</div>
+  </div>
+  <div class="key-idea key-blue">💡 Vamos a usar <strong>TMDB</strong> (The Movie Database), una API pública con información de miles de películas. Saber explorar y entender una API es clave: te deja probar endpoints, entender la respuesta antes de programar y depurar cuando algo falla.</div>
+</section>
+
+<!-- ══ 4. EL ENDPOINT Y LA RESPUESTA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">La API</span>
+  <h2>El endpoint y su respuesta</h2>
+  <p>El endpoint de películas populares se ve así:</p>
+<pre><code class="language-none">GET https://api.themoviedb.org/3/movie/popular?language=es-SV&page=1</code></pre>
+  <p>Y nos responde un JSON con esta forma:</p>
+  <div class="json-box">
+<span class="json-punct">{</span><br>
+&nbsp;&nbsp;<span class="json-key">"page"</span><span class="json-punct">:</span> <span class="json-num">1</span><span class="json-punct">,</span><br>
+&nbsp;&nbsp;<span class="json-key">"results"</span><span class="json-punct">:</span> <span class="json-punct">[</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-punct">{</span> <span class="json-key">"id"</span><span class="json-punct">:</span> <span class="json-num">552524</span><span class="json-punct">,</span> <span class="json-key">"title"</span><span class="json-punct">:</span> <span class="json-str">"Lilo & Stitch"</span><span class="json-punct">,</span> <span class="json-key">"vote_average"</span><span class="json-punct">:</span> <span class="json-num">7.1</span> <span class="json-punct">},</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-punct">{</span> <span class="json-key">"id"</span><span class="json-punct">:</span> <span class="json-num">1234821</span><span class="json-punct">,</span> <span class="json-key">"title"</span><span class="json-punct">:</span> <span class="json-str">"Jurassic World"</span><span class="json-punct">,</span> <span class="json-key">"vote_average"</span><span class="json-punct">:</span> <span class="json-num">7.2</span> <span class="json-punct">}</span><br>
+&nbsp;&nbsp;<span class="json-punct">],</span><br>
+&nbsp;&nbsp;<span class="json-key">"total_pages"</span><span class="json-punct">:</span> <span class="json-num">51242</span><br>
+<span class="json-punct">}</span>
+  </div>
+  <div class="key-idea key-blue">💡 La respuesta tiene un <strong>envoltorio</strong>: el objeto principal trae <ic>page</ic>, <ic>total_pages</ic> y un array <ic>results</ic> con las películas adentro.</div>
+</section>
+
+<!-- ══ 5A. DEPENDENCIAS — CATÁLOGO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Preparación · 1/2</span>
+  <h2>Las dependencias — el catálogo</h2>
+  <p>Para hablar con la API usamos <strong>Ktor</strong>, el cliente HTTP de Kotlin. Primero declaramos las versiones y librerías en el <ic>libs.versions.toml</ic>.</p>
+<pre><code class="language-none">[versions]
+ktor = "3.4.3"
+
+[libraries]
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }</code></pre>
+  <div class="key-idea key-amber">💡 El <ic>libs.versions.toml</ic> es el <strong>catálogo de dependencias</strong> del proyecto. Acá se declara todo una sola vez, y se referencia desde cualquier módulo. Las 5 librerías de Ktor usan la misma versión <ic>ktor</ic>.</div>
+</section>
+
+<!-- ══ 5B. DEPENDENCIAS — USARLAS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Preparación · 2/2</span>
+  <h2>Las dependencias — usarlas</h2>
+  <p>Ya declaradas en el catálogo, las referenciamos en el <ic>build.gradle.kts</ic> del módulo <ic>:app</ic>.</p>
+<pre><code class="language-kotlin">// build.gradle.kts (Module :app)
+
+dependencies {
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
+}</code></pre>
+  <p>El plugin de serialización ya lo tenemos del proyecto. Después de agregar esto, sincronizá Gradle.</p>
+  <div class="key-idea key-amber">💡 El permiso de internet ya lo tenemos en el Manifest desde que agregamos Coil. Si no estuviera, habría que agregarlo: <ic>&lt;uses-permission android:name="android.permission.INTERNET"/&gt;</ic></div>
+</section>
+
+<!-- ══ 6. QUÉ ES UN DTO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">DTOs</span>
+  <h2>¿Qué es un DTO?</h2>
+  <p>Un <strong>DTO</strong> (Data Transfer Object) es una clase que representa <strong>exactamente</strong> lo que la API nos devuelve. Es el "molde" del JSON.</p>
+  <div class="flow-diagram">
+    <div class="flow-row">
+      <div class="flow-box net" style="background:#444">JSON de la API</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box api" style="background:var(--teal-mid)">DTO</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box api" style="background:var(--amber-mid)">Mapper</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box app">Modelo (Movie)</div>
+    </div>
+    <div class="flow-row" style="margin-top:4px">
+      <div style="font-size:0.36em; color:#888; font-style:italic; width:115px; text-align:center">lo que llega</div>
+      <div style="width:24px"></div>
+      <div style="font-size:0.36em; color:#888; font-style:italic; width:75px; text-align:center">el molde</div>
+      <div style="width:24px"></div>
+      <div style="font-size:0.36em; color:#888; font-style:italic; width:90px; text-align:center">transforma</div>
+      <div style="width:24px"></div>
+      <div style="font-size:0.36em; color:#888; font-style:italic; width:115px; text-align:center">lo que usa la app</div>
+    </div>
+  </div>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El DTO</strong> hace match exacto con el JSON: nombres, tipos, estructura externa.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El Modelo</strong> es lo que tu app usa: limpio, con solo lo que necesitás.</div></div>
+  </div>
+  <div class="key-idea key-teal">💡 Si TMDB cambia un nombre de campo, solo tocás el DTO y el mapper. El resto de la app ni se entera. <strong>El DTO aísla a la app de los cambios de la API.</strong></div>
+</section>
+
+<!-- ══ 7. EL DTO DE LA LISTA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">DTOs</span>
+  <h2>Los DTOs de la lista</h2>
+  <p>Necesitamos dos: uno para el envoltorio y otro para cada película.</p>
+<pre><code class="language-kotlin">@Serializable
+data class GetMoviesResponseDto(
+    val page: Int,
+    val results: List&lt;MovieDto&gt;,
+    @SerialName("total_pages") val totalPages: Int,
+    @SerialName("total_results") val totalResults: Int
+)
+
+@Serializable
+data class MovieDto(
+    val id: Int,
+    val title: String,
+    @SerialName("original_title") val originalTitle: String,
+    @SerialName("original_language") val originalLanguage: String,
+    val overview: String,
+    @SerialName("release_date") val releaseDate: String,
+    val adult: Boolean,
+    val popularity: Double,
+    @SerialName("vote_average") val voteAverage: Double,
+    @SerialName("vote_count") val voteCount: Int,
+    val video: Boolean,
+    @SerialName("backdrop_path") val backdropPath: String?,
+    @SerialName("poster_path") val posterPath: String?
+)</code></pre>
+  <div class="key-idea key-teal">💡 <ic>@Serializable</ic> habilita la clase para convertirse desde JSON. <ic>@SerialName</ic> mapea nombres: la API usa <ic>vote_average</ic>, nosotros usamos <ic>voteAverage</ic>. Los campos de imagen son <ic>String?</ic> porque pueden venir nulos.</div>
+</section>
+
+<!-- ══ 8. EL MAPPER ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">DTOs</span>
+  <h2>El Mapper — de DTO a Modelo</h2>
+  <p>Una función de extensión convierte el <ic>MovieDto</ic> al modelo <ic>Movie</ic> que usa la app.</p>
+<pre><code class="language-kotlin">private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
+
+fun MovieDto.toModel(): Movie {
+    return Movie(
+        id = id,
+        title = title,
+        originalTitle = originalTitle,
+        originalLanguage = originalLanguage,
+        overview = overview,
+        releaseDate = releaseDate,
+        adult = adult,
+        genreIds = emptyList(),
+        popularity = popularity,
+        voteAverage = voteAverage,
+        voteCount = voteCount,
+        video = video,
+        backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$it" } ?: "",
+        posterUrl = posterPath?.let { "$IMAGE_BASE_URL$it" } ?: ""
+    )
+}</code></pre>
+  <div class="key-idea key-teal">💡 <ic>fun MovieDto.toModel()</ic> es una <strong>función de extensión</strong>: le "agrega" el método <ic>toModel()</ic> a la clase <ic>MovieDto</ic> sin modificar la clase original. Por eso después podés escribir <ic>dto.toModel()</ic> como si fuera un método propio del DTO. Dentro de la función, <ic>id</ic>, <ic>title</ic>, etc. se refieren a las propiedades del DTO sobre el que se llama.</div>
+</section>
+
+<!-- ══ 9. EL KTOR CLIENT ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Ktor Client</span>
+  <h2>Configurar el cliente Ktor</h2>
+  <p>El <ic>KtorClient</ic> es un <ic>object</ic> — una sola instancia para toda la app. Acá se configura todo.</p>
+<pre><code class="language-kotlin">object KtorClient {
+
+    private const val BASE_URL = "https://api.themoviedb.org/3/"
+    private const val BEARER_TOKEN = "..." // el token de TMDB
+
+    val client = HttpClient(OkHttp) {
+
+        // Parseo automático de JSON
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+            })
+        }
+
+        // Configuración para todas las peticiones
+        defaultRequest {
+            url(BASE_URL)
+            header(HttpHeaders.Authorization, "Bearer $BEARER_TOKEN")
+            header(HttpHeaders.Accept, "application/json")
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-blue">💡 <ic>ContentNegotiation</ic> convierte el JSON automáticamente. <ic>ignoreUnknownKeys</ic> es clave: TMDB manda muchos campos que no usamos — sin esto, la app crashea. <ic>defaultRequest</ic> aplica la URL base y el token a <strong>todas</strong> las llamadas.</div>
+</section>
+
+<!-- ══ 10. LOGGING ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Ktor Client</span>
+  <h2>Ver qué responde la API — Logging</h2>
+  <p>Ktor tiene un plugin que registra cada petición y respuesta en el Logcat. Útil para entender y depurar.</p>
+<pre><code class="language-kotlin">install(Logging) {
+    logger = object : Logger {
+        override fun log(message: String) {
+            Log.d("KtorClient", message)
+        }
+    }
+    level = LogLevel.ALL
+}</code></pre>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Filtrando por <ic>KtorClient</ic> en el Logcat ven cada llamada y la respuesta completa.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Cuando algo falle, el log dice qué pasó: el código de error, el cuerpo de la respuesta.</div></div>
+  </div>
+  <div class="key-idea key-amber">💡 Ojo: <ic>LogLevel.ALL</ic> muestra <strong>hasta el token</strong> en el Logcat. Para aprender está bien, pero en una app publicada el logging se baja a <ic>INFO</ic> o se apaga — las credenciales no deben quedar en los logs.</div>
+</section>
+
+<!-- ══ 11. EL REPOSITORY ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Repository</span>
+  <h2>El Repository con Ktor</h2>
+  <p>Ahora la implementación del Repository hace la llamada real a la API.</p>
+<pre><code class="language-kotlin">class MovieApiRepository : MovieRepository {
+
+    override suspend fun getMovies(): List&lt;Movie&gt; {
+        // 1. Petición GET al endpoint
+        val response: GetMoviesResponseDto = KtorClient.client
+            .get("movie/popular") {
+                parameter("language", "es-SV")
+                parameter("page", 1)
+            }
+            .body()
+
+        // 2. Convertimos los DTOs al modelo de dominio
+        return response.results.map { apiMovie ->
+            apiMovie.toModel()
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-purple">💡 Como la URL base está en el <ic>defaultRequest</ic>, acá solo escribimos el endpoint: <ic>"movie/popular"</ic>. <ic>parameter()</ic> arma los query params, y <ic>.body()</ic> convierte la respuesta al DTO. Sigue siendo <ic>suspend</ic> — la llamada de red toma tiempo.</div>
+</section>
+
+<!-- ══ 12. LO QUE NO CAMBIÓ ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">El valor de MVVM</span>
+  <h2>Lo que NO cambió</h2>
+  <p>Pasamos de datos hardcoded a una API real. ¿Cuánto código tuvimos que tocar fuera de la capa de datos?</p>
+  <div class="compare-grid">
+    <div class="compare-card before">
+      <div class="compare-card-title before">Lo que cambió</div>
+      <p style="font-size:0.5em; color:#444; line-height:1.5">Solo la <strong>capa de datos</strong>: creamos los DTOs, el KtorClient y una nueva implementación del Repository.</p>
+    </div>
+    <div class="compare-card after">
+      <div class="compare-card-title after">Lo que NO cambió</div>
+      <p style="font-size:0.5em; color:#444; line-height:1.5">El <strong>ViewModel</strong> sigue igual. La <strong>View</strong> sigue igual. La <strong>interface</strong> MovieRepository sigue igual.</p>
+    </div>
+  </div>
+  <div class="key-idea key-green">💡 Esto es exactamente lo que prometimos cuando hicimos MVVM y Repository. El cambio se <strong>localiza</strong> en una sola capa. El resto de la app ni se enteró. <strong>Por esto vale la pena la arquitectura.</strong></div>
+</section>
+
+<!-- ══ 13. DETALLE POR ID ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Repository</span>
+  <h2>Segundo endpoint: detalle por ID</h2>
+  <p>Para traer una sola película, el <ic>id</ic> va en la <strong>ruta</strong>, no como query param.</p>
+<pre><code class="language-kotlin">override suspend fun getMovieById(id: Int): Movie {
+    val response: MovieDto = KtorClient.client
+        .get("movie/$id") {
+            parameter("language", "es-SV")
+        }
+        .body()
+
+    return response.toModel()
+}</code></pre>
+  <div class="key-idea key-purple">💡 La diferencia clave: el <ic>id</ic> se interpola <strong>en la ruta</strong> con <ic>$id</ic>. Los <ic>parameter()</ic> son solo para lo que va después del <ic>?</ic>. Y este endpoint devuelve la película directa — sin envoltorio <ic>results</ic>.</div>
+</section>
+
+<!-- ══ 14. ERRORES COMUNES ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-red">Cuando algo falla</span>
+  <h2>Errores comunes</h2>
+  <p>Consumir una API es la primera vez que el código depende de algo externo. Estos errores son normales — lo importante es saber leerlos.</p>
+  <div class="err-list">
+    <div class="err-item">
+      <div class="err-name">401 Unauthorized</div>
+      <div class="err-fix"><strong>Causa:</strong> el token está mal o le falta <ic>Bearer</ic> adelante. <strong>Revisá</strong> el header Authorization.</div>
+    </div>
+    <div class="err-item">
+      <div class="err-name">SerializationException: Field 'X' is required</div>
+      <div class="err-fix"><strong>Causa:</strong> un campo del DTO vino <ic>null</ic> pero no es nullable. <strong>Solución:</strong> hacé ese campo <ic>String?</ic>.</div>
+    </div>
+    <div class="err-item">
+      <div class="err-name">UnknownHostException</div>
+      <div class="err-fix"><strong>Causa:</strong> no hay internet, o falta el permiso <ic>INTERNET</ic> en el Manifest.</div>
+    </div>
+    <div class="err-item">
+      <div class="err-name">La app crashea al parsear el JSON</div>
+      <div class="err-fix"><strong>Causa:</strong> falta <ic>ignoreUnknownKeys = true</ic> en la config del <ic>Json</ic>.</div>
+    </div>
+  </div>
+  <div class="key-idea key-red">💡 El plugin de Logging es tu mejor amigo acá: el log te dice el código de error y la respuesta exacta de la API.</div>
+</section>
+
+<!-- ══ 15. TOKEN SEGURO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Buenas prácticas</span>
+  <h2>El token no debe ir en el código</h2>
+  <p>Hasta ahora el token está hardcoded en el <ic>KtorClient</ic>. Si subís el código a GitHub, <strong>tu token queda público</strong>. La solución: guardarlo en <ic>local.properties</ic>, que nunca se sube.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">En <ic>local.properties</ic> (raíz del proyecto) agregás: <ic>TMDB_TOKEN=tu_token_aqui</ic> &nbsp;— sin comillas.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">En <ic>build.gradle.kts</ic> leés el archivo y exponés el valor vía <ic>BuildConfig</ic>.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">En el <ic>KtorClient</ic> usás <ic>BuildConfig.TMDB_TOKEN</ic> en lugar del texto hardcoded.</div>
+    </div>
+  </div>
+<pre><code class="language-kotlin">// build.gradle.kts (:app) — arriba del bloque android { }
+import java.util.Properties
+import java.io.FileInputStream
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+val tmdbToken: String = localProperties.getProperty("TMDB_TOKEN") ?: ""
+
+android {
+    defaultConfig {
+        buildConfigField("String", "TMDB_TOKEN", "\"$tmdbToken\"")
+    }
+    buildFeatures { buildConfig = true }
+}</code></pre>
+  <div class="key-idea key-amber">💡 Ojo: <ic>local.properties</ic> NO es un archivo de propiedades de Gradle — por eso hay que leerlo a mano con <ic>Properties()</ic>. Ya está en el <ic>.gitignore</ic> por defecto, así que tu token nunca llega a GitHub. Cada quien pone el suyo.</div>
+</section>
+
+<!-- ══ 16. CIERRE / LO QUE VIENE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Lo que viene</span>
+  <h2>Ya consumimos datos reales</h2>
+  <p>Hoy la app trae películas reales desde internet. Pero hay un detalle: <strong>cada vez que entran a la pantalla, se vuelve a llamar a la API.</strong></p>
+  <p>Aunque ya hayamos traído esas películas hace un minuto, las pedimos de nuevo. Eso gasta datos, batería, y hace la app más lenta.</p>
+  <div class="next-class">
+    <h3>Próximamente</h3>
+    <p>Vamos a aprender a <strong>guardar los datos</strong> para no pedirlos una y otra vez. La versión simple es guardarlos en memoria. La versión real — que persiste aunque cierres la app — es una base de datos local con <strong>Room</strong>.</p>
+    <span class="next-tag">Inyección de Dependencias · Room</span>
+  </div>
+  <div class="key-idea key-purple">💡 Antes de Room veremos <strong>Inyección de Dependencias</strong> para organizar mejor cómo se construyen el Repository y el cliente Ktor. Paso a paso.</div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
