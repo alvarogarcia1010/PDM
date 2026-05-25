@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manejar errores y recarga de datos — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+pre[class*="language-"] { font-size:0.4em !important; line-height:1.5; border-radius:8px; padding:0.85em 1em !important; margin:0.3em 0 !important; max-height:490px; overflow:auto; background:#fafafa !important; border:1px solid #e0e0e0; }
+code[class*="language-"] { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#888; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+.problems { display:flex; flex-direction:column; gap:8px; margin-top:0.3em; }
+.problem { display:flex; gap:11px; align-items:flex-start; background:var(--red-bg); border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--red-mid); }
+.p-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--red-dark); font-weight:700; }
+.p-text { font-size:0.6em; color:#222; line-height:1.55; }
+.p-text strong { color:var(--red-dark); }
+
+.benefits { display:flex; flex-direction:column; gap:7px; margin-top:0.3em; }
+.benefit { display:flex; gap:11px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--green-mid); }
+.b-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--green-dark); font-weight:700; }
+.b-text { font-size:0.58em; color:#222; line-height:1.55; }
+.b-text strong { color:#000; }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.next-class { background:#1a1a1a; color:#fff; border-radius:10px; padding:1em 1.3em; max-width:85%; margin:0.4em auto; }
+.next-class h3 { font-size:0.65em; font-weight:700; color:#fff; margin:0 0 0.4em; text-transform:uppercase; letter-spacing:0.06em; }
+.next-class p { color:#ddd; font-size:0.55em; line-height:1.55; margin:0 0 0.3em; }
+.next-class .next-tag { display:inline-block; background:#3C3489; padding:3px 11px; border-radius:6px; font-size:0.45em; font-weight:600; margin-top:0.4em; }
+
+.crash-box { background:#0a0a0a; color:#ff5252; border-radius:8px; padding:0.8em 1em; font-family:'Fira Code',monospace; font-size:0.42em; line-height:1.5; margin:0.4em auto; max-width:90%; text-align:left; border:1px solid #2a2a2a; }
+.crash-box .stack { color:#888; }
+.crash-box .key { color:#ff5252; font-weight:700; }
+
+.states-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:0.4em auto; max-width:90%; }
+.state-card { background:#f7f7f7; border-radius:10px; padding:0.7em 0.85em; border-top:3px solid; text-align:center; }
+.state-card.loading { border-color:var(--blue-mid); }
+.state-card.error { border-color:var(--red-mid); }
+.state-card.success { border-color:var(--green-mid); }
+.state-icon { font-size:1.4em; margin-bottom:0.2em; }
+.state-name { font-size:0.55em; font-weight:700; margin-bottom:0.2em; }
+.state-name.loading { color:var(--blue-dark); }
+.state-name.error { color:var(--red-dark); }
+.state-name.success { color:var(--green-dark); }
+.state-desc { font-size:0.42em; color:#666; line-height:1.4; }
+
+.phone-mock { background:#fafafa; border:2px solid #ddd; border-radius:14px; padding:0.6em 0.5em; max-width:200px; margin:0.3em auto; text-align:center; }
+.phone-header { font-size:0.4em; color:#888; padding-bottom:0.4em; border-bottom:1px solid #eee; margin-bottom:0.4em; }
+.phone-content { padding:1em 0.5em; font-size:0.5em; color:#444; }
+.phone-content.error-state { color:var(--red-dark); }
+.phone-content .icon { font-size:1.6em; margin-bottom:0.3em; }
+.phone-content .msg { font-size:0.85em; }
+
+.refresh-anim { background:#fafafa; border:2px solid #ddd; border-radius:14px; padding:1em 0.5em; max-width:200px; margin:0.3em auto; text-align:center; position:relative; }
+.refresh-arrow { font-size:1.4em; color:var(--purple-dark); }
+.refresh-text { font-size:0.5em; color:#666; margin-top:0.3em; font-style:italic; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <h1 style="font-size:1.8em">Manejar errores y recarga de datos</h1>
+  <p style="font-size:0.65em; color:#888">Cuando la API falla y cómo dejar que el usuario reintente</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"Una app que crashea es peor que una app que muestra un error"</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. RECORDATORIO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-gray">Recordatorio</span>
+  <h2>¿Dónde quedamos?</h2>
+  <p>La clase pasada conectamos la app a una API real con Ktor. La app trae películas desde TMDB y se ven en pantalla.</p>
+  <p>Pero hay un detalle: <strong>todo eso depende de que haya internet y de que la API responda</strong>. ¿Qué pasa si algo de eso falla?</p>
+  <div class="key-idea key-red">💡 Spoiler: la app crashea. Hoy vamos a ver cómo evitarlo, y de paso le damos al usuario una forma de <strong>reintentar</strong> con pull-to-refresh.</div>
+</section>
+
+<!-- ══ 3. EL PROBLEMA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-red">El problema</span>
+  <h2>Sin internet, la app crashea</h2>
+  <p>Prueben esto: pongan el celular en <strong>modo avión</strong> y abran la app. Esto es lo que pasa:</p>
+  <div class="crash-box">
+<span class="key">FATAL EXCEPTION:</span> main<br>
+Process: com.agarcia.pdm_course_2026, PID: 12384<br>
+<span class="key">java.net.UnknownHostException:</span> Unable to resolve host<br>
+&nbsp;&nbsp;"api.themoviedb.org": No address associated with hostname<br>
+<span class="stack">&nbsp;&nbsp;at java.net.Inet6AddressImpl.lookupHostByName(...)</span><br>
+<span class="stack">&nbsp;&nbsp;at io.ktor.client.engine.okhttp.OkHttpEngine...</span><br>
+<span class="stack">&nbsp;&nbsp;at com.agarcia.pdm_course_2026...MovieApiRepository.getMovies(...)</span>
+  </div>
+  <div class="key-idea key-red">💡 La llamada a la API lanza una excepción <strong>nadie la atrapa</strong>, y sube hasta crashear la app. El problema no es la API — es que no manejamos el error.</div>
+</section>
+
+<!-- ══ 4. RESULT EN KOTLIN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Result&lt;T&gt;</span>
+  <h2>Result&lt;T&gt; — el tipo que dice "éxito o fracaso"</h2>
+  <p>Kotlin tiene una clase llamada <ic>Result&lt;T&gt;</ic> que representa <strong>un resultado que puede ser exitoso o fallido</strong>.</p>
+<pre><code class="language-kotlin">// Crear un éxito
+val exito: Result&lt;List&lt;Movie&gt;&gt; = Result.success(listOf(...))
+
+// Crear un fallo
+val fallo: Result&lt;List&lt;Movie&gt;&gt; = Result.failure(Exception("Sin internet"))
+
+// Y para usarlo, dos métodos clave:
+resultado
+    .onSuccess { datos -> /* hacé algo con los datos */ }
+    .onFailure { error -> /* mostrá el mensaje del error */ }</code></pre>
+  <div class="key-idea key-blue">💡 En lugar de lanzar excepciones que crashean, el Repository devuelve un <ic>Result</ic>. El ViewModel revisa si fue éxito o fracaso y reacciona. <strong>Nada crashea — todo se maneja con código normal.</strong></div>
+</section>
+
+<!-- ══ 5. REPOSITORY CON TRY/CATCH ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Repository</span>
+  <h2>El Repository devuelve Result</h2>
+  <p>Cambiamos la firma del Repository: ya no devuelve <ic>List&lt;Movie&gt;</ic>, ahora devuelve <ic>Result&lt;List&lt;Movie&gt;&gt;</ic>. Adentro, un try/catch atrapa cualquier excepción.</p>
+<pre><code class="language-kotlin">interface MovieRepository {
+    suspend fun getMovies(): Result&lt;List&lt;Movie&gt;&gt;
+    suspend fun getMovieById(id: Int): Result&lt;Movie&gt;
+}
+
+class MovieApiRepository : MovieRepository {
+
+    override suspend fun getMovies(): Result&lt;List&lt;Movie&gt;&gt; {
+        try {
+            val response: GetMoviesResponseDto = KtorClient.client
+                .get("movie/popular") {
+                    parameter("language", "es-SV")
+                    parameter("page", 1)
+                }
+                .body()
+
+            return Result.success(response.results.map { it.toModel() })
+        } catch (e: Exception) {
+            Log.e("MovieApiRepository", "Error al obtener películas: ${e.message}")
+            return Result.failure(e)
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-purple">💡 Si la llamada funciona, devolvemos <ic>Result.success</ic> con los datos. Si <strong>cualquier cosa</strong> falla (sin internet, JSON malo, error del servidor), el <ic>catch</ic> la atrapa, lo loguea con <ic>Log.e</ic> para poder depurar, y devuelve <ic>Result.failure</ic>. <strong>El mismo patrón se aplica a <ic>getMovieById</ic></strong> — solo cambia el tipo a <ic>Result&lt;Movie&gt;</ic>.</div>
+</section>
+
+<!-- ══ 6. VIEWMODEL CON ONSUCCESS / ONFAILURE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">ViewModel</span>
+  <h2>El ViewModel reacciona al Result</h2>
+  <p>El ViewModel ya tenía los <ic>StateFlow</ic> de <ic>movies</ic> y <ic>loading</ic>. Solo agregamos uno nuevo para el error, y reescribimos <ic>loadMovies()</ic> para manejar el <ic>Result</ic>.</p>
+<pre><code class="language-kotlin">// Nuevo StateFlow para el error
+private val _error = MutableStateFlow&lt;String?&gt;(null)
+val error = _error.asStateFlow()
+
+// loadMovies actualizado
+fun loadMovies() {
+    viewModelScope.launch {
+        _loading.value = true
+        _error.value = null
+
+        movieRepository.getMovies()
+            .onSuccess { movies -> _movies.value = movies }
+            .onFailure { e -> _error.value = e.message }
+
+        _loading.value = false
+    }
+}</code></pre>
+  <div class="key-idea key-blue">💡 <ic>onSuccess</ic> y <ic>onFailure</ic> son los dos métodos clave de <ic>Result</ic>: el primero se ejecuta si todo salió bien, el segundo si hubo error. Antes de cada carga limpiamos el error con <ic>_error.value = null</ic> para no mostrar errores viejos cuando el usuario reintenta.</div>
+</section>
+
+<!-- ══ 7. TRES ESTADOS DE UI ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-teal">Estados de UI</span>
+  <h2>Toda pantalla con datos tiene 3 estados</h2>
+  <p>Este es un patrón clásico de Android — vale la pena tenerlo claro porque lo van a usar en todas sus apps.</p>
+  <div class="states-row">
+    <div class="state-card loading">
+      <div class="state-icon">⏳</div>
+      <div class="state-name loading">Cargando</div>
+      <div class="state-desc">Mostrar un indicador mientras llegan los datos.</div>
+    </div>
+    <div class="state-card error">
+      <div class="state-icon">⚠️</div>
+      <div class="state-name error">Error</div>
+      <div class="state-desc">Algo falló. Mostrar un mensaje claro y opcionalmente un botón para reintentar.</div>
+    </div>
+    <div class="state-card success">
+      <div class="state-icon">✅</div>
+      <div class="state-name success">Éxito</div>
+      <div class="state-desc">Los datos llegaron. Mostrar la lista normalmente.</div>
+    </div>
+  </div>
+  <div class="key-idea key-teal">💡 La View pregunta <strong>en este orden</strong>: ¿está cargando? Mostrá el spinner. ¿Hay error? Mostrá el mensaje. Si no, mostrá los datos. Cada estado tiene su UI propia.</div>
+</section>
+
+<!-- ══ 8. VIEW CON LOS 3 ESTADOS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">View</span>
+  <h2>Lo nuevo en la View — el bloque de error</h2>
+  <p>El Composable ya manejaba <ic>loading</ic> y los datos. Solo agregamos el bloque del error: si <ic>error</ic> no es nulo, mostramos el mensaje y un botón para reintentar.</p>
+<pre><code class="language-kotlin">val error by viewModel.error.collectAsState()
+
+if (error != null) {
+    AppScaffold(title = "Movies") { padding ->
+        Column {
+            Text(
+                text = error ?: "Unknown error",
+                modifier = Modifier.padding(padding)
+            )
+            Button(onClick = { viewModel.loadMovies() }) {
+                Text("Reintentar")
+            }
+        }
+    }
+    return
+}</code></pre>
+  <div class="key-idea key-green">💡 El <ic>return</ic> corta acá — si hay error, no se ejecuta el resto del Composable. El botón vuelve a llamar a <ic>loadMovies()</ic>, que ya sabe limpiar el error antes de hacer la nueva petición.</div>
+</section>
+
+<!-- ══ 9. TIKTOK TIME ══ -->
+<section data-background-color="#000000" style="text-align:center; color:#fff">
+  <div style="font-size:0.45em; font-weight:700; letter-spacing:0.15em; color:#FE2C55; margin-bottom:0.3em">⏸ PAUSA</div>
+  <h1 style="font-size:2.4em; color:#fff; margin:0.1em 0; line-height:1.05">
+    <span style="color:#25F4EE">Tik</span><span style="color:#FE2C55">Tok</span> Time
+  </h1>
+  <p style="font-size:0.65em; color:#ccc; max-width:75%; margin:0.6em auto; line-height:1.55">
+    Pausa para respirar y ver algo distinto. En TikTok hay mucha gente compartiendo cosas que aprenden — códigos, errores, UX, fails de apps reales.
+  </p>
+  <p style="font-size:0.42em; color:#666; margin-top:0.8em; font-style:italic">
+    Aprovechen TikTok para aprender, no solo para scrollear.
+  </p>
+</section>
+
+<!-- ══ 10. EL PROBLEMA DEL REFRESH ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Recargar datos</span>
+  <h2>¿Y si el usuario quiere ver lo nuevo?</h2>
+  <p>Ya manejamos los errores. Pero pensemos en este escenario:</p>
+  <div class="problems">
+    <div class="problem">
+      <div class="p-icon">→</div>
+      <p class="p-text">El usuario abre la app y la lista de películas se carga bien.</p>
+    </div>
+    <div class="problem">
+      <div class="p-icon">→</div>
+      <p class="p-text">Pasan unos minutos. Quizás TMDB ya tiene películas nuevas en el catálogo.</p>
+    </div>
+    <div class="problem">
+      <div class="p-icon">→</div>
+      <p class="p-text">¿Cómo hace el usuario para decirle a la app "recargá, traé lo último"?</p>
+    </div>
+  </div>
+  <p>Hay un patrón estándar que los usuarios <strong>esperan</strong> en cualquier app moderna: deslizar hacia abajo para recargar.</p>
+  <div class="key-idea key-amber">💡 Es el <strong>pull-to-refresh</strong>: el usuario tira hacia abajo, aparece un indicador girando, y la pantalla se recarga. Lo ven en Instagram, Twitter, Gmail, todas las apps.</div>
+</section>
+
+<!-- ══ 11. PULL TO REFRESH BOX ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Pull-to-refresh</span>
+  <h2>PullToRefreshBox de Material 3</h2>
+  <p>Material 3 trae un componente listo: <ic>PullToRefreshBox</ic>. Lo envolvemos alrededor de la lista y queda funcionando.</p>
+<pre><code class="language-kotlin">val refreshing by viewModel.refreshing.collectAsState()
+
+PullToRefreshBox(
+    onRefresh = { viewModel.refreshMovies() },
+    isRefreshing = refreshing,
+    modifier = Modifier
+        .fillMaxSize()
+        .padding(padding)
+        .padding(16.dp),
+) {
+    LazyColumn {
+        items(movies) { movie ->
+            MovieItem(
+                movie = movie,
+                onClick = { navigateToDetail(movie.id) }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}</code></pre>
+  <div class="key-idea key-purple">💡 Dos parámetros: <ic>isRefreshing</ic> le dice al componente si mostrar el indicador girando, y <ic>onRefresh</ic> es lo que se ejecuta cuando el usuario suelta el dedo. Usamos un <ic>StateFlow</ic> aparte para <ic>refreshing</ic> — distinto del <ic>loading</ic> de la primera carga.</div>
+</section>
+
+<!-- ══ 13. CIERRE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Cierre</span>
+  <h2>¿Qué logramos hoy?</h2>
+  <p>Empezamos con una app que crashea sin internet. Terminamos con una app que <strong>se comporta como una app real</strong>.</p>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>No crashea.</strong> Cualquier error de la API se atrapa con try/catch.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Le habla al usuario.</strong> Si algo falla, ve un mensaje claro y un botón para reintentar.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>Los 3 estados se manejan limpio.</strong> Loading, error y éxito tienen su UI propia.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text"><strong>El usuario puede recargar.</strong> Pull-to-refresh es el patrón estándar y ahora la app lo tiene.</div></div>
+  </div>
+  <div class="key-idea key-green">💡 Y todo esto sin romper la arquitectura: el Repository sigue siendo Repository, el ViewModel sigue siendo ViewModel. Solo cambiamos el tipo de retorno a <ic>Result</ic> y agregamos un estado de error.</div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
