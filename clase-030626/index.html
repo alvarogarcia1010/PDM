@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tu app sale al mundo — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.reveal ul { margin:0.1em 0; }
+.reveal li { font-size:0.6em; line-height:1.55; margin-bottom:0.22em; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; box-shadow:0 5px 16px rgba(30,28,70,0.06); }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.benefits { display:flex; flex-direction:column; gap:7px; margin-top:0.3em; }
+.benefit { display:flex; gap:11px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.55em 0.95em; border-left:3px solid var(--green-mid); box-shadow:0 5px 16px rgba(30,28,70,0.06); }
+.b-icon { font-size:0.7em; flex-shrink:0; padding-top:1px; color:var(--green-dark); font-weight:700; }
+.b-text { font-size:0.58em; color:#222; line-height:1.55; }
+.b-text strong { color:#000; }
+
+.opt-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:0.3em; }
+.opt-card { background:#f7f7f7; border-radius:10px; padding:0.7em 0.95em; border-left:3px solid var(--blue-mid); box-shadow:0 5px 16px rgba(30,28,70,0.06); }
+.opt-card.hi { border-left-color:var(--teal-dark); background:var(--teal-bg); }
+.opt-card h3 { font-size:0.58em; margin:0 0 0.25em; color:var(--blue-dark); }
+.opt-card.hi h3 { color:var(--teal-dark); }
+.opt-card p { font-size:0.5em; color:#555; margin:0.1em 0; line-height:1.45; }
+
+.steps { counter-reset:step; margin-top:0.3em; }
+.step { display:flex; gap:11px; align-items:flex-start; background:#f7f7f7; border-radius:8px; padding:0.5em 0.95em; margin-bottom:6px; box-shadow:0 5px 16px rgba(30,28,70,0.06); }
+.step-num { background:var(--blue-mid); color:#fff; width:1.5em; height:1.5em; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.5em; font-weight:700; }
+.step-text { font-size:0.55em; color:#222; line-height:1.5; }
+.step-text strong { color:#000; }
+
+.menu-path { display:inline-block; background:#1e1e1e; color:#dcdcdc; font-family:'Fira Code',monospace; font-size:0.48em; padding:0.4em 0.8em; border-radius:8px; margin:0.2em 0; box-shadow:0 8px 22px rgba(30,28,70,0.12); }
+.menu-path b { color:#9CDCFE; font-weight:600; }
+
+.next-class { background:#1a1a1a; color:#fff; border-radius:10px; padding:1em 1.3em; max-width:85%; margin:0.4em auto; box-shadow:0 16px 40px rgba(0,0,0,0.20); }
+.next-class h3 { font-size:0.65em; font-weight:700; color:#fff; margin:0 0 0.4em; text-transform:uppercase; letter-spacing:0.06em; }
+.next-class p { color:#ddd; font-size:0.55em; line-height:1.55; margin:0 0 0.3em; }
+.next-class .next-tag { display:inline-block; background:#3C3489; padding:3px 11px; border-radius:6px; font-size:0.45em; font-weight:600; margin-top:0.4em; }
+
+.portada-accent { width:56px; height:4px; background:var(--teal-mid); border-radius:3px; margin:0.55em auto 0.35em; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#FCFBF8" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026</span>
+  <div class="portada-accent"></div>
+  <h1 style="font-size:1.8em">Tu app sale al mundo</h1>
+  <p style="font-size:0.65em; color:#888">APK, pruebas y Play Store</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"Una app que solo corre en tu compu todavía no existe para nadie más."</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. RECORDATORIO ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-gray">Recordatorio</span>
+  <h2>Hasta hoy, tu app vivía en el emulador</h2>
+  <p>Todo lo que construimos corría en <strong>tu máquina</strong>: el emulador o tu propio teléfono conectado por cable a Android Studio.</p>
+  <p>Funciona perfecto… pero solo para vos. Nadie más puede usarla.</p>
+  <div class="key-idea key-purple">💡 Hoy vemos cómo <strong>sacar la app de tu compu</strong> y ponerla en manos de otras personas.</div>
+</section>
+
+<!-- ══ 3. EL PROBLEMA ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-red">El problema</span>
+  <h2>¿Cómo le doy mi app a alguien más?</h2>
+  <p>No le podés mandar el proyecto entero de Android Studio para que lo abra y le dé "Run". Eso no es una app, es código.</p>
+  <p>Lo que la gente instala es <strong>un solo archivo</strong>: el instalable de tu app.</p>
+  <div class="key-idea key-red">💡 Necesitamos empaquetar la app en un archivo que cualquiera pueda instalar sin tener Android Studio.</div>
+</section>
+
+<!-- ══ 4. QUÉ ES UN APK ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-blue">El concepto</span>
+  <h2>APK (y su primo, el AAB)</h2>
+  <p>El <strong>APK</strong> (Android Package) es el instalable de Android: un solo archivo <ic>.apk</ic> que contiene toda tu app, lista para instalar en un teléfono.</p>
+  <p>El <strong>AAB</strong> (Android App Bundle) es un formato más nuevo: en vez de un instalable final, es un "paquete" que se le entrega a Google, y la Play Store genera el APK óptimo para cada modelo de teléfono.</p>
+  <div class="key-idea key-blue">💡 Regla simple: <strong>APK</strong> para compartir e instalar directo. <strong>AAB</strong> para subir a la Play Store.</div>
+</section>
+
+<!-- ══ 5. GENERAR EL APK ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-amber">Paso a paso</span>
+  <h2>Generar el APK en Android Studio</h2>
+  <div class="menu-path">Build &nbsp;▸&nbsp; <b>Generate Signed App Bundle / APK…</b></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text">Elegís <strong>APK</strong> (o AAB si vas a la Play Store).</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text">Creás o seleccionás un <strong>keystore</strong>: tu llave de firma. Android no instala apps sin firmar.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Elegís <strong>release</strong> (optimizado, para repartir) en vez de <strong>debug</strong> (solo para probar).</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text">Android Studio te genera el archivo <ic>.apk</ic> listo para compartir.</div></div>
+  </div>
+  <div class="key-idea key-amber">💡 Guardá tu <strong>keystore</strong> y su contraseña con tu vida: si lo perdés, no vas a poder volver a actualizar esa misma app en la Play Store.</div>
+</section>
+
+<!-- ══ 6. CÓMO COMPARTIRLA (PANORAMA) ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-teal">Cómo compartirla</span>
+  <h2>El APK es solo un archivo</h2>
+  <div class="opt-grid">
+    <div class="opt-card"><h3>Compartirlo directo</h3><p>Google Drive, GitHub Releases o WhatsApp. Quien lo recibe activa "orígenes desconocidos" y lo instala.</p></div>
+    <div class="opt-card"><h3>Diawi</h3><p>Subís el APK y te da un <strong>link + código QR</strong>, sin necesidad de cuenta. Lo más rápido para un envío suelto.</p></div>
+    <div class="opt-card"><h3>Play Console — testing tracks</h3><p>El canal oficial de Google: tracks interno, cerrado y abierto. Es el "TestFlight de Android".</p></div>
+    <div class="opt-card hi"><h3>Firebase App Distribution</h3><p>El más usado para pruebas: testers por correo, gratis e integrado con Firebase. Lo vemos a fondo enseguida.</p></div>
+  </div>
+  <div class="key-idea key-teal">💡 Como el APK es un archivo, repartirlo es tan fácil como compartir cualquier documento.</div>
+</section>
+
+<!-- ══ 7. FIREBASE APP DISTRIBUTION ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-teal">Más a fondo</span>
+  <h2>Firebase App Distribution</h2>
+  <p>De todas las opciones, esta es la más usada para repartir tu app a un grupo de <strong>testers</strong> antes de publicarla. Es <strong>gratis</strong>.</p>
+  <ul>
+    <li>Subís el APK desde la consola de Firebase (o por línea de comandos / Gradle).</li>
+    <li>Invitás a tus testers por <strong>correo</strong> y los agrupás.</li>
+    <li>Cada tester recibe un link, instala la app y te puede dar feedback.</li>
+  </ul>
+  <div class="key-idea key-teal">💡 Ideal para que tu grupo, tu familia o tus clientes prueben la app y te reporten errores <strong>antes</strong> de mandarla a la Play Store. Tope: 500 testers por proyecto.</div>
+</section>
+
+<!-- ══ 8. LA PLAY STORE ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-purple">El siguiente nivel</span>
+  <h2>Publicar en la Play Store</h2>
+  <p>Para que tu app aparezca en la tienda necesitás una cuenta de <strong>Google Play Console</strong>:</p>
+  <ul>
+    <li>Pago <strong>único de $25</strong> (no es suscripción, se paga una sola vez).</li>
+    <li>Verificación de identidad.</li>
+    <li>Subís un <strong>AAB</strong> (no APK), y Google se encarga de firmar y optimizar.</li>
+    <li>Te piden: ícono, capturas, descripción, política de privacidad y clasificación de contenido.</li>
+  </ul>
+  <div class="key-idea key-purple">💡 Ojo con esto: las cuentas <strong>personales nuevas</strong> deben hacer una prueba cerrada con <strong>12 testers durante 14 días seguidos</strong> antes de poder publicar a producción.</div>
+</section>
+
+<!-- ══ 9. APK VS AAB ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-blue">Para no confundirse</span>
+  <h2>APK vs. AAB — ¿cuándo cada uno?</h2>
+  <div class="opt-grid">
+    <div class="opt-card"><h3>APK</h3><p>Un instalable final, listo para usar.</p><p><strong>Para:</strong> compartir directo, pruebas, Firebase, Diawi.</p></div>
+    <div class="opt-card hi"><h3>AAB</h3><p>Un paquete que Google optimiza por dispositivo.</p><p><strong>Para:</strong> publicar en la Play Store (obligatorio).</p></div>
+  </div>
+  <div class="key-idea key-blue">💡 Mismo proyecto, dos salidas: generás <strong>APK</strong> para repartir entre conocidos y <strong>AAB</strong> cuando vas a la tienda.</div>
+</section>
+
+<!-- ══ 10. CIERRE ══ -->
+<section data-background-color="#FCFBF8">
+  <span class="tag tag-green">Cierre</span>
+  <h2>¿Qué logramos hoy?</h2>
+  <div class="benefits">
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Sabemos generar un <strong>APK firmado</strong> desde Android Studio.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Sabemos repartirlo para pruebas: <strong>Firebase</strong>, <strong>Diawi</strong> o como archivo.</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Entendemos la diferencia entre <strong>APK</strong> (compartir) y <strong>AAB</strong> (Play Store).</div></div>
+    <div class="benefit"><div class="b-icon">✓</div><div class="b-text">Conocemos el camino para <strong>publicar</strong>: cuenta de $25, AAB, testers y requisitos.</div></div>
+  </div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
