@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía Room: RankeUCA (CP1)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+  --ink:#23262e; --muted:#6b7280; --line:#e8e6df;
+}
+* { box-sizing:border-box; }
+body {
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  color:var(--ink); background:#FCFBF8; margin:0;
+  line-height:1.65; font-size:18px;
+}
+.wrap { max-width:860px; margin:0 auto; padding:0 22px 120px; }
+
+/* hero */
+.hero { padding:56px 0 30px; border-bottom:1px solid var(--line); margin-bottom:36px; }
+.kicker { display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--teal-dark); background:var(--teal-bg); padding:5px 13px; border-radius:20px; }
+.hero-accent { width:60px; height:4px; background:var(--teal-mid); border-radius:3px; margin:18px 0 14px; }
+h1 { font-size:40px; line-height:1.12; letter-spacing:-0.02em; margin:0 0 10px; color:var(--purple-dark); font-weight:800; }
+.subtitle { font-size:19px; color:var(--muted); margin:0; }
+
+h2 { font-size:27px; letter-spacing:-0.015em; color:#1a1a1a; margin:54px 0 6px; font-weight:800; }
+h2 .step-pill { display:inline-block; font-size:13px; font-weight:700; color:var(--purple-mid); background:var(--purple-bg); border-radius:8px; padding:2px 10px; margin-right:10px; vertical-align:middle; }
+h3 { font-size:20px; color:var(--blue-dark); margin:32px 0 4px; font-weight:700; }
+p { margin:14px 0; }
+.lead { font-size:20px; color:#3a3f4a; }
+strong { color:#111; font-weight:700; }
+a { color:var(--blue-mid); }
+hr.soft { border:none; border-top:1px solid var(--line); margin:46px 0; }
+
+ic { background:#ecebf6; color:var(--purple-dark); padding:1px 6px; border-radius:5px; font-family:'Fira Code','Consolas',monospace; font-size:0.86em; }
+
+/* code window */
+.codewin { border-radius:12px; overflow:hidden; box-shadow:0 12px 30px rgba(30,28,70,0.10); border:1px solid #e6e6e6; margin:18px 0; }
+.codewin .bar { display:flex; align-items:center; gap:7px; padding:9px 14px; background:linear-gradient(#f4f4f7,#ededf1); border-bottom:1px solid #e6e6e6; }
+.codewin .dot { width:11px; height:11px; border-radius:50%; }
+.codewin .fname { margin-left:8px; font-family:'Fira Code',monospace; font-size:12.5px; color:#7a7d88; }
+.codewin pre { margin:0 !important; border-radius:0 !important; background:#fafafa !important; border:none !important; font-size:14px !important; line-height:1.6; padding:16px 18px !important; overflow:auto; }
+.codewin code { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#9499a3; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+/* callouts */
+.callout { border-radius:12px; padding:16px 20px; margin:22px 0; border-left:5px solid; font-size:17px; }
+.callout .ct { display:block; font-weight:800; font-size:13px; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:5px; }
+.callout p { margin:6px 0; }
+.why   { background:var(--blue-bg);   border-color:var(--blue-mid); }
+.why .ct   { color:var(--blue-dark); }
+.key   { background:var(--purple-bg); border-color:var(--purple-mid); }
+.key .ct   { color:var(--purple-dark); }
+.warn  { background:var(--amber-bg);  border-color:var(--amber-mid); }
+.warn .ct  { color:var(--amber-dark); }
+.check { background:var(--green-bg);  border-color:var(--green-mid); }
+.check .ct { color:var(--green-dark); }
+
+/* pieces grid */
+.pieces { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:22px 0; }
+.piece { background:#fff; border:1px solid var(--line); border-top:3px solid var(--teal-mid); border-radius:12px; padding:16px; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.piece h4 { margin:0 0 6px; color:var(--teal-dark); font-size:17px; }
+.piece p { margin:0; font-size:15px; color:#555; line-height:1.5; }
+
+.flow { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; margin:24px 0; padding:20px 16px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.flow-box { background:#fbfbfd; border:1px solid var(--line); border-bottom:3px solid var(--purple-mid); border-radius:10px; padding:10px 16px; text-align:center; font-weight:700; font-size:15px; color:#2a2a2a; white-space:nowrap; }
+.flow-box .sub { display:block; font-weight:400; font-size:11.5px; color:var(--muted); margin-top:3px; }
+.flow-box.view { border-bottom-color:var(--green-mid); }
+.flow-box.vm   { border-bottom-color:var(--blue-mid); }
+.flow-box.repo { border-bottom-color:var(--purple-mid); }
+.flow-box.room { border-bottom-color:var(--teal-mid); }
+.flow-box.gen  { border-bottom-color:var(--amber-mid); }
+.flow-arrow { color:var(--purple-mid); font-size:18px; font-weight:800; }
+.diagram { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 14px 10px; margin:24px 0; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.diagram svg { width:100%; height:auto; display:block; }
+.diagram-cap { text-align:center; font-size:13px; color:var(--muted); margin:10px 0 4px; font-style:italic; }
+
+.toc { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 24px; margin:30px 0; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.toc h4 { margin:0 0 10px; font-size:14px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); }
+.toc ol { margin:0; padding-left:22px; }
+.toc li { margin:5px 0; }
+.toc a { text-decoration:none; }
+.toc a:hover { text-decoration:underline; }
+
+@media (max-width:620px){ .pieces{ grid-template-columns:1fr; } h1{ font-size:32px; } body{ font-size:17px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <span class="kicker">PDM · 01-2026 · Clase en línea · CP1</span>
+  <div class="hero-accent"></div>
+  <h1>RankeUCA con Room: que las opciones se queden</h1>
+  <p class="subtitle">Hoy le damos memoria propia a la app. Las opciones para votar dejan de vivir "en el aire" y pasan a guardarse en el dispositivo con Room.</p>
+</div>
+
+<p class="lead">¿Te acordás de <strong>RankeUCA</strong>, la app de votaciones del parcial? La vamos a retomar, pero esta vez la hacemos más <strong>pro</strong>. De aquí en adelante nos concentramos en el corazón que la mueve por detrás: el <strong>módulo del admin</strong>, el que administra las opciones y las preguntas de las votaciones.</p>
+<p>Hoy le ponemos el primer ladrillo: el <strong>administrador de opciones</strong>, pero de verdad, guardadas en el dispositivo con Room.</p>
+
+<div class="callout key">
+  <span class="ct">La meta de hoy</span>
+  <p>Un CRUD local de <strong>opciones</strong> (los lugares para votar), guardado con Room, donde la pantalla <strong>siempre lee de Room</strong>. Eso último es la idea grande: <strong>Room como fuente de la verdad</strong>.</p>
+</div>
+
+<div class="toc">
+  <h4>Lo que vamos a hacer</h4>
+  <ol>
+    <li><a href="#porque">¿Por qué Room?</a></li>
+    <li><a href="#piezas">Las 3 piezas</a></li>
+    <li><a href="#estructura">La estructura de carpetas</a></li>
+    <li><a href="#deps">Dependencias (KSP + Room)</a></li>
+    <li><a href="#entity">La Entity (OptionEntity)</a></li>
+    <li><a href="#model">El modelo y el mapper (toModel)</a></li>
+    <li><a href="#dao">El DAO (OptionDao)</a></li>
+    <li><a href="#db">La Database (con su singleton)</a></li>
+    <li><a href="#repo">El Repository</a></li>
+    <li><a href="#provider">El AppProvider y la Application</a></li>
+    <li><a href="#vm">El ViewModel</a></li>
+    <li><a href="#ui">La pantalla</a></li>
+    <li><a href="#final">Checkpoint final</a></li>
+  </ol>
+</div>
+
+<hr class="soft">
+
+<h2 id="porque">1 · ¿Por qué Room?</h2>
+<p>Hasta ahora, los datos de la app vivían <strong>en memoria</strong>: mientras la app estaba abierta existían, y al cerrarla se esfumaban. Para una lista de opciones que queremos administrar, eso no sirve. Necesitamos <strong>persistencia</strong>: guardar información más allá del ciclo de vida de la app.</p>
+<p>Android trae <ic>SQLite</ic>, una base de datos local, desde siempre. Pero usarla a mano es tedioso y propenso a errores: escribís SQL como texto, mapeás cada fila a objeto vos mismo, y los errores recién aparecen cuando la app ya está corriendo. <strong>Room</strong> es una librería de Jetpack que se pone <em>encima</em> de SQLite y te ahorra todo eso.</p>
+
+<div class="callout why">
+  <span class="ct">¿Por qué Room y no SQLite a mano?</span>
+  <p>Porque Room <strong>verifica tus consultas al compilar</strong> (si te equivocás en una query, no compila), <strong>mapea las filas a objetos por vos</strong>, y se integra con <ic>Flow</ic> para avisarte en vivo cuando los datos cambian. Menos código, menos errores.</p>
+</div>
+
+<p>Ese último punto, el <ic>Flow</ic>, es clave para nuestra meta. Vamos a hacer que la pantalla <strong>observe</strong> la base de datos: cuando agregués o borrés una opción, la lista se redibuja sola, sin que vos le digas "actualizate". La base de datos manda; la UI solo refleja lo que hay en ella. Eso es <strong>Room como fuente de la verdad</strong>.</p>
+
+<hr class="soft">
+
+<h2 id="piezas">2 · Las 3 piezas</h2>
+<p>Room se arma con tres componentes. Vale la pena tenerlos claros antes de escribir código:</p>
+<div class="pieces">
+  <div class="piece"><h4>① Entity</h4><p>La <strong>tabla</strong>. Una clase que define qué se guarda y con qué columnas.</p></div>
+  <div class="piece"><h4>② DAO</h4><p>El <strong>menú de operaciones</strong>: insertar, consultar, borrar. Una interfaz; Room la implementa.</p></div>
+  <div class="piece"><h4>③ Database</h4><p>La <strong>clase central</strong> que junta las entities y da acceso a los DAOs.</p></div>
+</div>
+<p>Y una pieza de apoyo nueva que vamos a conocer hoy: el <strong>AppProvider</strong>, que arma todas estas piezas y se las entrega a quien las necesite. Lo vemos en detalle en el Paso 7.</p>
+
+<hr class="soft">
+
+<h2 id="estructura"><span class="step-pill">Paso 0</span>La estructura de carpetas</h2>
+<p>Antes de empezar a programar, conviene tener claro dónde va cada cosa. Todo lo relacionado con <strong>datos</strong> vive en una carpeta llamada <ic>data</ic> (es la "capa de datos" del patrón). Y adentro, cada cosa va en su propia carpeta según su responsabilidad: lo local, lo del API y los repositories, separados, y cada carpeta con sus cosas.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">app/src/main/java/com/agarcia/rankeuca/data/</span></div>
+<pre><code>data/
+├── database/             ← lo LOCAL, con Room
+│   ├── dao/
+│   │   └── OptionDao.kt
+│   ├── entities/
+│   │   └── OptionEntity.kt
+│   └── AppDatabase.kt
+├── remote/               ← lo del API con Ktor (llega más adelante)
+├── repository/
+│   ├── OptionRepository.kt
+│   └── OptionRepositoryImpl.kt
+├── model/
+│   └── Option.kt
+└── AppProvider.kt        ← arma y reparte las dependencias
+</code></pre>
+</div>
+
+<p>Qué hace cada carpeta:</p>
+<p><ic>database/</ic> guarda todo lo de Room: adentro tiene <ic>dao/</ic> (los DAO), <ic>entities/</ic> (las entities, o sea las tablas) y la <ic>AppDatabase</ic>. Esta carpeta no sabe nada del API.</p>
+<p><ic>remote/</ic> es para todo lo del API (el cliente Ktor y los DTOs). Hoy queda vacía; se llena cuando consumamos el server. Y al revés que la anterior, no sabe nada de la base de datos.</p>
+<p><ic>repository/</ic> tiene los repositories, que son la <strong>frontera</strong>. El repository es el único que conoce a las dos fuentes (la base local y el API) y las une. La pantalla solo le habla a él.</p>
+<p><ic>model/</ic> son los modelos de dominio que usa el resto de la app, como <ic>Option</ic>. Y <ic>AppProvider.kt</ic> es el que arma todas las piezas y las reparte (lo vemos en el Paso 7).</p>
+
+<div class="callout key">
+  <span class="ct">La idea de fondo</span>
+  <p>Cada carpeta tiene <strong>una sola responsabilidad</strong>: <ic>database</ic> no sabe del API, <ic>remote</ic> no sabe de la base, y el <ic>repository</ic> es el que los junta. Hoy llenamos <ic>database/</ic>, <ic>model/</ic>, <ic>repository/</ic> y <ic>AppProvider</ic>; la carpeta <ic>remote/</ic> la dejamos lista para cuando entre Ktor.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="deps"><span class="step-pill">Paso 1</span>Dependencias (KSP + Room)</h2>
+<p>Antes de agregar las dependencias, vale la pena entender qué es <strong>KSP</strong>, porque es la pieza que hace que Room "funcione mágicamente".</p>
+<p><strong>KSP</strong> (Kotlin Symbol Processing) es una herramienta que deja que ciertas librerías <strong>lean tu código anotado al momento de compilar y generen código nuevo a partir de él</strong>. ¿Por qué importa? Porque más adelante vos vas a escribir un DAO que es <em>solo una interfaz</em> con anotaciones (<ic>@Query</ic>, <ic>@Insert</ic>), sin escribir el SQL ni la implementación. Alguien tiene que leer esas anotaciones y <strong>generar la clase real</strong> que habla con SQLite. Ese "alguien" es el compilador de Room, y corre justamente a través de KSP.</p>
+<p>En otras palabras: KSP es el motor que, en cada build, convierte tus anotaciones de Room en código de verdad. (Reemplaza a <ic>kapt</ic>, el procesador viejo, y es bastante más rápido porque está hecho a la medida de Kotlin.)</p>
+<p>Con eso claro, lo declaramos en el version catalog:</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">gradle/libs.versions.toml</span></div>
+<pre><code class="language-toml">[versions]
+room = "2.8.4"
+ksp  = "2.3.9"
+
+[libraries]
+room-runtime  = { group = "androidx.room", name = "room-runtime",  version.ref = "room" }
+room-ktx      = { group = "androidx.room", name = "room-ktx",      version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+[plugins]
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }</code></pre>
+</div>
+
+<p>Y lo usamos en el <ic>build.gradle.kts</ic> del módulo (app):</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">app/build.gradle.kts</span></div>
+<pre><code class="language-kotlin">plugins {
+    // ...tus plugins de siempre
+    alias(libs.plugins.ksp)
+}
+
+dependencies {
+    // ...tus dependencias de siempre
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+}</code></pre>
+</div>
+
+<p>Cada dependencia cumple un rol: <ic>room-runtime</ic> es el motor de Room en ejecución, <ic>room-ktx</ic> suma el soporte para corrutinas y <ic>Flow</ic>, y <ic>room-compiler</ic> es el generador de código. Fijate que este último va con <ic>ksp(...)</ic> y no con <ic>implementation(...)</ic>: eso es justo lo que le dice a KSP "corré el compilador de Room en cada build".</p>
+
+<div class="callout why">
+  <span class="ct">¿Por qué Room "adivina" la implementación?</span>
+  <p>No adivina nada: la <strong>genera</strong>. Cuando compilás, KSP lee tu <ic>@Dao</ic> y escribe por detrás una clase (algo como <ic>OptionDao_Impl</ic>) con todo el SQL ya armado. Vos nunca la ves ni la tocás, pero es la que de verdad trabaja. Por eso una simple interfaz "funciona".</p>
+</div>
+
+<div class="flow">
+  <div class="flow-box">@Dao<span class="sub">tus anotaciones</span></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box gen">KSP<span class="sub">al compilar</span></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box room">OptionDao_Impl<span class="sub">código generado</span></div>
+</div>
+
+<div class="callout warn">
+  <span class="ct">Ojo</span>
+  <p>Después de agregar esto, dale <strong>Sync Now</strong> a Gradle. Si no sincronizás, Android Studio no va a reconocer las anotaciones de Room (<ic>@Entity</ic>, <ic>@Dao</ic>, etc.).</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="entity"><span class="step-pill">Paso 2</span>La Entity: <ic>OptionEntity</ic></h2>
+<p>La entity es la <strong>tabla</strong>. Cada propiedad es una columna. Para nuestras opciones de RankeUCA, una opción tiene un nombre (el lugar) y una imagen.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/database/entities/OptionEntity.kt</span></div>
+<pre><code class="language-kotlin">@Entity(tableName = "options")
+data class OptionEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val name: String,
+    val imageUrl: String,
+)</code></pre>
+</div>
+
+<p>Tres cosas que explicar acá:</p>
+<p><ic>@Entity(tableName = "options")</ic> le dice a Room "esta clase es una tabla, llamala <em>options</em>". <ic>@PrimaryKey(autoGenerate = true)</ic> hace que el <ic>id</ic> sea el identificador único y que <strong>Room lo asigne solo</strong>, por eso le ponemos <ic>val id: Int = 0</ic>: cuando creás una opción nueva la dejás en 0, y Room le pone el número real al guardarla.</p>
+
+<div class="callout why">
+  <span class="ct">¿Por qué autoGenerate?</span>
+  <p>Para no tener que inventar IDs a mano (y arriesgarnos a repetirlos). Vos solo das el nombre y la imagen; del <ic>id</ic> se encarga la base.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="model"><span class="step-pill">Paso 3</span>El modelo de dominio y el mapper</h2>
+<p>Acá va una decisión de arquitectura importante, la misma que usamos con Ktor: <strong>no usamos la entity directamente en la pantalla</strong>. Tenemos un modelo aparte, <ic>Option</ic>, que es el que ve el resto de la app.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/model/Option.kt</span></div>
+<pre><code class="language-kotlin">data class Option(
+    val id: Int = 0,
+    val name: String,
+    val imageUrl: String,
+)</code></pre>
+</div>
+
+<p>Y un par de <strong>mappers</strong> para convertir entre los dos. <ic>toModel()</ic> pasa de la entity (de la base) al modelo (de la app), y <ic>toEntity()</ic> al revés. Es exactamente la misma idea del <ic>toModel()</ic> que usamos al consumir el API con Ktor.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/database/entities/OptionEntity.kt</span></div>
+<pre><code class="language-kotlin">// en el mismo archivo de la entity, debajo de la data class
+
+fun OptionEntity.toModel(): Option {
+    return Option(
+        id = id,
+        name = name,
+        imageUrl = imageUrl,
+    )
+}
+
+fun Option.toEntity(): OptionEntity {
+    return OptionEntity(
+        id = id,
+        name = name,
+        imageUrl = imageUrl,
+    )
+}</code></pre>
+</div>
+
+<div class="callout why">
+  <span class="ct">¿Por qué separar entity y modelo si son casi iguales?</span>
+  <p>Porque la entity es un detalle de <em>cómo se guarda</em> (lleva anotaciones de Room), y el modelo es <em>lo que la app usa</em>. Hoy se parecen, pero mañana la entity puede cambiar (una columna nueva, una relación) sin obligarte a tocar toda la app. La frontera te protege.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="dao"><span class="step-pill">Paso 4</span>El DAO: <ic>OptionDao</ic></h2>
+<p>El DAO es una <strong>interfaz</strong> con las operaciones que le vamos a pedir a la base. No la implementás vos: Room escribe la implementación a partir de las anotaciones.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/database/dao/OptionDao.kt</span></div>
+<pre><code class="language-kotlin">@Dao
+interface OptionDao {
+
+    @Query("SELECT * FROM options")
+    fun getAllOptions(): Flow&lt;List&lt;OptionEntity&gt;&gt;
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOption(option: OptionEntity)
+
+    @Delete
+    suspend fun deleteOption(option: OptionEntity)
+}</code></pre>
+</div>
+
+<p>Fijate en dos detalles que importan:</p>
+<p>La consulta devuelve <ic>Flow&lt;List&lt;OptionEntity&gt;&gt;</ic>, no una lista normal. Un <ic>Flow</ic> es un <strong>stream que emite cada vez que los datos cambian</strong>. Por eso la lista de la pantalla se va a actualizar sola cuando agregués o borrés algo: está escuchando este Flow.</p>
+<p>Las operaciones que <em>modifican</em> (<ic>insert</ic>, <ic>delete</ic>) son <ic>suspend</ic>, porque tocar la base de datos es trabajo que no debe correr en el hilo principal (si no, trabás la UI). El <ic>onConflict = REPLACE</ic> dice: si insertás algo con un id que ya existe, reemplazalo.</p>
+
+<div class="callout why">
+  <span class="ct">¿Por qué Flow para leer y suspend para escribir?</span>
+  <p>Leer es algo continuo: querés enterarte de <em>cada</em> cambio → <ic>Flow</ic>. Escribir es una acción puntual que tarda un toque → <ic>suspend</ic>, para hacerla fuera del hilo principal sin congelar la pantalla.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="db"><span class="step-pill">Paso 5</span>La Database (y su singleton)</h2>
+<p>La clase <ic>AppDatabase</ic> es la pieza central: declara qué entities tiene y da acceso a los DAOs. Es <strong>abstracta</strong>: Room la implementa por debajo.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/database/AppDatabase.kt</span></div>
+<pre><code class="language-kotlin">@Database(
+    entities = [OptionEntity::class],
+    version = 1,
+    exportSchema = false
+)
+abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun optionDao(): OptionDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                Room.databaseBuilder(
+                    context = context.applicationContext,
+                    klass = AppDatabase::class.java,
+                    name = "rankeuca_database"
+                )
+                    .fallbackToDestructiveMigration(false)
+                    .build()
+                    .also { INSTANCE = it }
+            }
+        }
+    }
+}</code></pre>
+</div>
+
+<p>El <ic>companion object</ic> con <ic>getDatabase()</ic> garantiza que en toda la app exista <strong>una sola</strong> instancia de la base de datos (un <em>singleton</em>). Abrir la base es caro; no querés hacerlo en cada pantalla.</p>
+
+<div class="callout why">
+  <span class="ct">¿Por qué tanto cuidado con la instancia única?</span>
+  <p><ic>@Volatile</ic> + <ic>synchronized</ic> evitan que, si dos partes de la app piden la base <em>al mismo tiempo</em>, se creen dos instancias. Te asegura una sola, de forma segura entre hilos. Y fijate que usamos <ic>context.applicationContext</ic> (nunca el de una Activity) para no fugar memoria.</p>
+</div>
+
+<div class="callout warn">
+  <span class="ct">El detalle de la versión</span>
+  <p><ic>version = 1</ic> es la versión del esquema. Cuando en el taller agreguemos otra tabla, vamos a subirla a <ic>2</ic>. <ic>fallbackToDestructiveMigration(false)</ic> define cómo reacciona Room a esos cambios. Por ahora no te preocupés: con una sola tabla y versión 1 no hay nada que migrar.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="repo"><span class="step-pill">Paso 6</span>El Repository</h2>
+<p>El Repository es la <strong>frontera</strong> entre la app y los datos. La pantalla y el ViewModel le piden a él, sin saber si por detrás hay una base local o un API. Lo armamos en <strong>dos archivos</strong>: primero la <strong>interfaz</strong> (el contrato, lo que se puede pedir) y luego su <strong>implementación</strong> (el cómo). Hoy, como es <strong>solo local</strong>, el cómo queda bien sencillo: traduce lo que da el DAO al modelo de la app.</p>
+
+<p>Primero la interfaz:</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/repository/OptionRepository.kt</span></div>
+<pre><code class="language-kotlin">interface OptionRepository {
+    fun getOptions(): Flow&lt;List&lt;Option&gt;&gt;
+    suspend fun addOption(option: Option)
+    suspend fun deleteOption(option: Option)
+}</code></pre>
+</div>
+
+<p>Y en un archivo aparte, la implementación, que es la que de verdad habla con el DAO:</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/repository/OptionRepositoryImpl.kt</span></div>
+<pre><code class="language-kotlin">class OptionRepositoryImpl(
+    private val optionDao: OptionDao
+) : OptionRepository {
+
+    override fun getOptions(): Flow&lt;List&lt;Option&gt;&gt; {
+        return optionDao.getAllOptions().map { entities -&gt;
+            entities.map { it.toModel() }
+        }
+    }
+
+    override suspend fun addOption(option: Option) {
+        optionDao.insertOption(option.toEntity())
+    }
+
+    override suspend fun deleteOption(option: Option) {
+        optionDao.deleteOption(option.toEntity())
+    }
+}</code></pre>
+</div>
+
+<div class="callout key">
+  <span class="ct">Acá vive "Room como fuente de la verdad"</span>
+  <p>Mirá <ic>getOptions()</ic>: devuelve el <ic>Flow</ic> del DAO (o sea, lo que hay en Room) mapeado a modelo. La app <strong>lee de Room, punto</strong>. Cuando más adelante metamos Ktor, el API no le hablará a la pantalla, solo <em>guardará en Room</em>, y como la pantalla escucha este Flow, se enterará sola. Hoy sembramos esa idea con datos puramente locales.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="provider"><span class="step-pill">Paso 7</span>El AppProvider y la Application</h2>
+<div class="callout key">
+  <span class="ct">Ojo: dos cosas nuevas</span>
+  <p>En este paso aparecen <strong>dos conceptos que ves por primera vez</strong>: el <strong>AppProvider</strong> y la clase <strong>Application</strong>. Léelo con calma, porque son la base de cómo se arma toda la app, y los vas a usar de aquí en adelante en cada proyecto.</p>
+</div>
+<p>Ya tenemos todas las piezas, pero hay un detalle que quizá no saltaba a la vista. Mirá la cadena de dependencias: el <strong>ViewModel</strong> necesita el <strong>Repository</strong>, el Repository necesita el <strong>DAO</strong>, y el DAO sale de la <strong>base de datos</strong>. Cada cosa necesita la de abajo.</p>
+<p>Si dejáramos que cada clase creara lo que necesita por su cuenta, terminaríamos con bases de datos repetidas regadas por toda la app, código acoplado y un desorden difícil de mantener. La solución es tener <strong>un solo lugar que cree todo una sola vez y se lo reparta a quien lo pida</strong>. A eso se le llama <strong>inyección de dependencias</strong>, y como lo hacemos a mano (sin librerías), es <strong>inyección de dependencias manual</strong>.</p>
+
+<div class="callout why">
+  <span class="ct">¿Qué es la inyección de dependencias?</span>
+  <p>En lugar de que una clase <em>cree</em> las cosas que necesita, alguien externo se las <em>entrega</em> ya listas. Así una clase solo se preocupa por su trabajo, no por construir sus herramientas. El <ic>AppProvider</ic> es ese "alguien externo": el contenedor que arma las dependencias y las inyecta.</p>
+</div>
+
+<h3>El AppProvider</h3>
+<p>Entonces, nuestro <ic>AppProvider</ic> hace justo eso: crea la base (una sola, con el singleton del paso anterior), saca el DAO, arma el repository, y lo expone con un método <ic>provide…()</ic> para que cualquiera lo pida sin tener que construirlo.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/AppProvider.kt</span></div>
+<pre><code class="language-kotlin">class AppProvider(context: Context) {
+
+    private val appDatabase = AppDatabase.getDatabase(context)
+    private val optionDao = appDatabase.optionDao()
+
+    private val optionRepository: OptionRepository =
+        OptionRepositoryImpl(optionDao)
+
+    fun provideOptionRepository(): OptionRepository {
+        return optionRepository
+    }
+}</code></pre>
+</div>
+
+<p>Leelo de arriba abajo y vas a ver la cadena armándose: primero la base, de la base sale el <ic>optionDao</ic>, con el DAO se construye el <ic>optionRepository</ic>, y <ic>provideOptionRepository()</ic> es la "ventanilla" por donde lo entregamos. Cuando en el taller agreguemos más cosas, las vas a ir sumando acá mismo.</p>
+
+<h3>¿Y la clase Application?</h3>
+<p>Acá viene la segunda cosa nueva. Android tiene una clase especial llamada <ic>Application</ic>: es la <strong>primera que se crea cuando abrís la app</strong>, antes que cualquier pantalla, y <strong>vive durante toda la vida de la app</strong> (no se destruye al cambiar de pantalla, como sí les pasa a las Activities). Por eso es el lugar perfecto para guardar cosas que toda la app necesita, como nuestro <ic>AppProvider</ic>.</p>
+<p>Creamos <strong>nuestra propia clase</strong> que hereda de <ic>Application</ic> y le colgamos el <ic>appProvider</ic> con <ic>by lazy</ic>, así se construye recién la primera vez que alguien lo usa:</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">RankeUcaApplication.kt</span></div>
+<pre><code class="language-kotlin">class RankeUcaApplication : Application() {
+    val appProvider by lazy { AppProvider(this) }
+}</code></pre>
+</div>
+
+<div class="callout warn">
+  <span class="ct">El nombre va según tu paquete</span>
+  <p>No la llames literalmente <ic>RankeUcaApplication</ic> si tu proyecto se llama distinto. La convención es: el nombre se arma a partir del <strong>nombre de tu app / packageName</strong> más <ic>Application</ic>. Si tu paquete es <ic>com.tucarnet.rankeuca</ic>, queda bien <ic>RankeUcaApplication</ic>; si fuera <ic>com.tucarnet.miapp</ic>, sería <ic>MiAppApplication</ic>. Lo importante es que el nombre refleje tu propia app.</p>
+</div>
+
+<div class="callout warn">
+  <span class="ct">No te olvides del Manifest</span>
+  <p>Para que Android use tu clase <ic>Application</ic>, registrala en el <ic>AndroidManifest.xml</ic>, dentro de la etiqueta <ic>&lt;application&gt;</ic> (con el mismo nombre que le pusiste a tu clase):</p>
+</div>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">AndroidManifest.xml</span></div>
+<pre><code class="language-markup">&lt;application
+    android:name=".RankeUcaApplication"
+    ... &gt;</code></pre>
+</div>
+
+<hr class="soft">
+
+<h2 id="vm"><span class="step-pill">Paso 8</span>El ViewModel</h2>
+<p>El ViewModel cumple lo mismo de siempre: le da a la pantalla la lista de opciones y las acciones de agregar y borrar. Pero acá hay <strong>un cambio de fondo</strong> que vale la pena entender bien, porque es distinto a cuando consumías la API.</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">ui/options/OptionsViewModel.kt</span></div>
+<pre><code class="language-kotlin">class OptionsViewModel(
+    private val optionRepository: OptionRepository
+) : ViewModel() {
+
+    val options: StateFlow&lt;List&lt;Option&gt;&gt; =
+        optionRepository.getOptions()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    fun addOption(name: String, imageUrl: String) {
+        viewModelScope.launch {
+            optionRepository.addOption(Option(name = name, imageUrl = imageUrl))
+        }
+    }
+
+    fun deleteOption(option: Option) {
+        viewModelScope.launch {
+            optionRepository.deleteOption(option)
+        }
+    }
+
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as RankeUcaApplication
+                OptionsViewModel(app.appProvider.provideOptionRepository())
+            }
+        }
+    }
+}</code></pre>
+</div>
+
+<h3>Pedir una vez vs dejar la comunicación abierta</h3>
+<p>Acá está el cambio de fondo. Cuando traías datos de la API (el de movies), el repo te daba un <ic>Result</ic> de <strong>una sola vez</strong>: pedías con <ic>loadMovies()</ic>, te respondía, y ahí quedaba hasta que volvieras a pedir (por eso tenías un <ic>refreshMovies()</ic>).</p>
+<p>Con Room es distinto: <ic>getOptions()</ic> te da un <ic>Flow</ic> que <strong>se queda abierto</strong>, emitiendo una lista nueva <strong>cada vez que cambia la tabla</strong>. Entonces, en vez de pedir y soltar, dejamos una <strong>comunicación abierta</strong>.</p>
+<p>Eso es justo lo que hace <ic>stateIn</ic>: agarra ese Flow vivo y lo expone como un <ic>StateFlow</ic> que la pantalla observa. Mientras la pantalla esté mirando, el canal queda activo: agregás una opción, Room emite la lista nueva, y la pantalla se actualiza sola. Nunca tenés que llamar a un <ic>refresh</ic> a mano.</p>
+
+<div class="callout key">
+  <span class="ct">La comunicación queda abierta</span>
+  <p>Esta es la diferencia grande con la API: antes pedías una <em>foto</em> del momento; con Room te quedás suscrito a un <em>video en vivo</em>. Por eso un CRUD local con Room se siente casi mágico: tocás la base y la UI reacciona sola, sin recargas.</p>
+</div>
+
+<p>¿Y el <ic>_loading</ic>, <ic>_error</ic> y <ic>_refresh</ic> del de movies? Hoy no los necesitamos: esos eran por la red (mostrar el spinner, avisar si la conexión falló). Como esto es local y reactivo, no hay espera ni fallo de red que mostrar. Vuelven cuando entre Ktor.</p>
+
+<h3>El Factory: de dónde sale el repository</h3>
+<p>Ese <ic>companion object</ic> con el <ic>Factory</ic> también es nuevo para ustedes, y es importante entenderlo. El detalle es este: nuestro <ic>OptionsViewModel</ic> recibe un <ic>repository</ic> en el constructor, pero <strong>los ViewModel no los creás vos a mano</strong>, los crea el sistema de Android por vos. Y el sistema, por defecto, solo sabe crear ViewModels con constructor vacío. Si el tuyo necesita algo (como el repository), tenés que enseñarle <strong>cómo</strong> construirlo. Para eso sirve el <ic>Factory</ic>.</p>
+<p>Y leelo con cuidado, porque acá <strong>se cierra el círculo de la inyección de dependencias</strong>:</p>
+<ul>
+  <li><ic>this[APPLICATION_KEY]</ic> es la forma de alcanzar tu clase <ic>Application</ic> desde adentro del factory.</li>
+  <li>De esa Application sacamos su <ic>appProvider</ic> (el que armamos en el Paso 7).</li>
+  <li>Le pedimos el repository con <ic>provideOptionRepository()</ic>.</li>
+  <li>Y se lo pasamos al <ic>OptionsViewModel</ic> al construirlo.</li>
+</ul>
+
+<div class="callout why">
+  <span class="ct">Acá se conecta todo</span>
+  <p>El <ic>AppProvider</ic> <em>construyó</em> el repository (Paso 7) y el <ic>Factory</ic> lo <em>inyecta</em> en el ViewModel. Ese es el viaje completo de la inyección de dependencias manual: alguien arma la dependencia en un solo lugar, y otro la entrega donde se necesita. El ViewModel ni se entera de cómo se creó su repository, solo lo recibe listo para usar.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="ui"><span class="step-pill">Paso 9</span>La pantalla</h2>
+<p>Por fin lo visible. La pantalla tiene un <ic>Scaffold</ic> con su barra superior, un estado vacío cuando todavía no hay opciones, la lista en tarjetas, y un <strong>bottom sheet</strong> para crear una opción nueva. Ese bottom sheet lo dejamos en <strong>su propio archivo</strong> (un componente aparte) y solo lo usamos desde la pantalla.</p>
+<p>Acá no nos vamos a detener en cada detalle de Compose, eso ya lo manejás. Lo que de verdad importa entender son <strong>dos cosas</strong>: cómo la pantalla obtiene el ViewModel (el <ic>Factory</ic>) y cómo observa los datos (<ic>collectAsStateWithLifecycle</ic>). A esas dos les ponemos lupa más abajo.</p>
+
+<div class="callout warn">
+  <span class="ct">Esta pantalla usa íconos del set extendido</span>
+  <p>Usa <ic>Inbox</ic> y <ic>DeleteOutline</ic>, que no vienen en el set core. Para que compilen, agregá la dependencia <ic>material-icons-extended</ic> y subí el <ic>compileSdk</ic> a <ic>37</ic> (Android Studio te lo va a pedir). Si querés evitarlo, cambiá esos dos por íconos del core (como <ic>Icons.Default.Add</ic>) o por texto.</p>
+</div>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">ui/options/OptionsScreen.kt</span></div>
+<pre><code class="language-kotlin">@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OptionsScreen(
+    viewModel: OptionsViewModel = viewModel(factory = OptionsViewModel.Factory)
+) {
+    val options by viewModel.options.collectAsStateWithLifecycle()
+    var showSheet by rememberSaveable { mutableStateOf(false) }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        topBar = {
+            TopAppBar(
+                title = { Text("Administrar opciones") },
+                actions = {
+                    TextButton(onClick = { showSheet = true }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Nueva opción")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Nuevo")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        }
+    ) { innerPadding -&gt;
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+
+            if (options.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Inbox,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.height(36.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Todavia no hay opciones",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Toca Nuevo para crear la primera.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(items = options, key = { it.id }) { option -&gt;
+                        ElevatedCard {
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        text = option.name,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                },
+                                supportingContent = {
+                                    Text(
+                                        text = option.imageUrl,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                trailingContent = {
+                                    IconButton(onClick = { viewModel.deleteOption(option) }) {
+                                        Icon(
+                                            imageVector = Icons.Default.DeleteOutline,
+                                            contentDescription = "Borrar ${option.name}",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showSheet) {
+        OptionBottomSheet(
+            onSave = { name, imageUrl -&gt;
+                viewModel.addOption(name, imageUrl)
+            },
+            onDismiss = { showSheet = false }
+        )
+    }
+}</code></pre>
+</div>
+
+<p>Y el bottom sheet, en su propio archivo. Por eso va como <ic>fun</ic> normal (no <ic>private</ic>), para poder usarlo desde la pantalla:</p>
+
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">ui/options/OptionBottomSheet.kt</span></div>
+<pre><code class="language-kotlin">@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OptionBottomSheet(
+    onSave: (name: String, imageUrl: String) -&gt; Unit,
+    onDismiss: () -&gt; Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    var name by rememberSaveable { mutableStateOf("") }
+    var imageUrl by rememberSaveable { mutableStateOf("") }
+
+    val isValid = name.isNotBlank() &amp;&amp; imageUrl.isNotBlank()
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Nueva opción",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Agrega nombre e imagen para que aparezca en la lista.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre del lugar") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = imageUrl,
+                onValueChange = { imageUrl = it },
+                label = { Text("URL de la imagen") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) { Text("Cancelar") }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        if (isValid) {
+                            onSave(name.trim(), imageUrl.trim())
+                            onDismiss()
+                        }
+                    },
+                    enabled = isValid
+                ) {
+                    Text("Guardar")
+                }
+            }
+        }
+    }
+}</code></pre>
+</div>
+
+<h3>El Factory en acción</h3>
+<p>Mirá la firma de la pantalla: <ic>viewModel(factory = OptionsViewModel.Factory)</ic>. Acá es donde el <ic>Factory</ic> que escribiste en el Paso 8 <strong>entra en juego de verdad</strong>. La función <ic>viewModel(...)</ic> es la que crea el ViewModel (o te devuelve el que ya existe); al pasarle tu <ic>Factory</ic>, le decís "no lo armés con constructor vacío, usá mi receta". Y esa receta es la que va al <ic>AppProvider</ic> a traer el repository. Resultado: la pantalla recibe un ViewModel <strong>ya conectado a Room</strong>, sin saber nada de bases ni repositories.</p>
+
+<h3>collectAsStateWithLifecycle</h3>
+<p><ic>val options by viewModel.options.collectAsStateWithLifecycle()</ic>. Tu <ic>options</ic> es un <ic>StateFlow</ic> (lo armaste con <ic>stateIn</ic>). Este <ic>collectAsStateWithLifecycle()</ic> lo observa y lo convierte en estado de Compose: cada vez que el StateFlow emite una lista nueva, <ic>options</ic> cambia y la pantalla se recompone sola. (Viene de <ic>androidx.lifecycle:lifecycle-runtime-compose</ic>; si no te resuelve, agregá esa dependencia.)</p>
+<p>El <strong>"WithLifecycle"</strong> es lo clave: solo colecta mientras la pantalla está visible, y se pausa cuando se va a segundo plano. Combina perfecto con el <ic>WhileSubscribed</ic> del <ic>stateIn</ic>: juntos arman el canal vivo que se prende cuando hay alguien mirando y se apaga cuando no, sin gastar recursos de más.</p>
+
+<div class="flow">
+  <div class="flow-box room">Room<span class="sub">emite en cada cambio</span></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box repo">Repository<span class="sub">mapea a modelo</span></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box vm">ViewModel<span class="sub">stateIn</span></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box view">Pantalla<span class="sub">collectAsStateWithLifecycle</span></div>
+</div>
+
+<div class="callout key">
+  <span class="ct">Lo que la pantalla NO hace</span>
+  <p>Nunca le decís "recargá la lista". Solo observás <ic>options</ic>. Agregás o borrás, Room cambia, el Flow emite, y la pantalla se redibuja sola. Esa es la fuente de la verdad llegando hasta la UI.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="final">Checkpoint final</h2>
+<div class="callout check">
+  <span class="ct">✓ La prueba de fuego</span>
+  <p>Corré la app. Agregá dos o tres opciones (por ejemplo "Cafetería Central", "El Chambre"). Vas a verlas aparecer en la lista al instante. Ahora <strong>cerrá la app por completo y volvé a abrirla</strong>: las opciones <strong>siguen ahí</strong>. Si eso pasa, lograste persistencia con Room. 🎉</p>
+</div>
+
+<p>Si <em>no</em> aparecen o la app crashea, revisá lo más común: ¿sincronizaste Gradle?, ¿registraste la <ic>Application</ic> en el Manifest?, ¿el nombre de la tabla en <ic>@Query</ic> coincide con el de <ic>@Entity</ic>?</p>
+
+<h3>Lo que NO cambió</h3>
+<p>Date cuenta del camino completo que recorre la información: es el <em>mismo</em> patrón MVVM + Repository que ya venías usando con el API. Lo único que cambió es quién está al final: ahora es Room. La estructura se mantuvo intacta, y esa es justo la lección de hoy.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 720 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Arquitectura por capas: capa UI con Vista y ViewModel, y capa de datos con Repository ramificando a Room Database y Remote con Ktor">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#534AB7"/>
+    </marker>
+  </defs>
+
+  <rect x="215" y="18" width="290" height="186" rx="16" fill="#faf9ff" stroke="#cfcbe8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="233" y="42" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5" fill="#3C3489">CAPA UI</text>
+
+  <rect x="270" y="54" width="180" height="56" rx="12" fill="#EAF3DE" stroke="#3B6D11" stroke-width="2"/>
+  <text x="360" y="80" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700" fill="#27500A">Vista</text>
+  <text x="360" y="98" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#6b7280">UI · Compose</text>
+
+  <line x1="360" y1="110" x2="360" y2="132" stroke="#534AB7" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <rect x="270" y="134" width="180" height="56" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="2"/>
+  <text x="360" y="160" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700" fill="#0C447C">ViewModel</text>
+  <text x="360" y="178" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#6b7280">estado observable</text>
+
+  <line x1="360" y1="192" x2="360" y2="266" stroke="#534AB7" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <rect x="64" y="232" width="592" height="290" rx="16" fill="#fbfdfa" stroke="#cfcbe8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="82" y="256" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5" fill="#085041">CAPA DE DATOS · MODEL</text>
+
+  <rect x="270" y="270" width="180" height="56" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/>
+  <text x="360" y="296" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700" fill="#3C3489">Repository</text>
+  <text x="360" y="314" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#6b7280">la frontera</text>
+
+  <line x1="318" y1="326" x2="216" y2="411" stroke="#534AB7" stroke-width="2.2" marker-end="url(#ah)"/>
+  <line x1="402" y1="326" x2="504" y2="411" stroke="#534AB7" stroke-width="2.2" marker-end="url(#ah)"/>
+
+  <rect x="110" y="414" width="210" height="80" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="2"/>
+  <text x="215" y="446" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#085041">Room Database</text>
+  <text x="215" y="465" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#0F6E56">local · fuente de la verdad</text>
+
+  <rect x="400" y="414" width="210" height="80" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="2"/>
+  <text x="505" y="446" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#0C447C">Remote · Ktor</text>
+  <text x="505" y="465" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#185FA5">API · llega después</text>
+</svg>
+<p class="diagram-cap">El remoto con Ktor llega más adelante; hoy la app trabaja solo con Room.</p>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-toml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+</body>
+</html>
