@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline-first: API, Room y SSOT — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+pre[class*="language-"] { font-size:0.4em !important; line-height:1.5; border-radius:8px; padding:0.85em 1em !important; margin:0.3em 0 !important; max-height:490px; overflow:auto; background:#fafafa !important; border:1px solid #e0e0e0; }
+code[class*="language-"] { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#888; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.foot { font-size:0.55em; color:#666; margin-top:0.3em; }
+
+/* flujo de datos: API → Ktor → Room → Repo → UI */
+.flow { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin:0.6em 0; }
+.fbox { font-size:0.5em; font-weight:700; text-align:center; padding:12px 16px; border-radius:10px; line-height:1.25; }
+.fbox small { font-weight:500; opacity:0.8; }
+.fbox.purple { background:var(--purple-bg); color:var(--purple-dark); }
+.fbox.teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.fbox.amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.fbox.blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.fbox.green  { background:var(--green-bg);  color:var(--green-dark); }
+.farrow { font-size:0.5em; font-weight:700; color:#8a90a0; }
+
+/* tarjetas de comparación (3 opciones) */
+.cmp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:0.3em; }
+.cmp-card { background:#f7f7f7; border-radius:10px; padding:0.7em 0.9em; border-top:3px solid; text-align:left; }
+.cmp-card h3 { font-size:0.6em; font-weight:700; margin:0 0 0.25em; }
+.cmp-card .mono { display:block; font-family:'Fira Code','Consolas',monospace; font-weight:600; font-size:0.5em; margin-bottom:0.3em; color:#333; }
+.cmp-card p { font-size:0.5em; color:#444; line-height:1.5; margin:0 0 0.2em; }
+.cmp-card .foot { font-size:0.45em; color:#777; margin:0; }
+.cmp-card.blue   { border-color:var(--blue-mid); }   .cmp-card.blue h3   { color:var(--blue-dark); }
+.cmp-card.green  { border-color:var(--green-mid); }  .cmp-card.green h3  { color:var(--green-dark); }
+.cmp-card.purple { border-color:var(--purple-mid); } .cmp-card.purple h3 { color:var(--purple-dark); }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026 · Fuentes de datos</span>
+  <h1 style="font-size:1.8em">¿De dónde sale la verdad?</h1>
+  <p style="font-size:0.65em; color:#888">API, Room, o las dos juntas</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"Quiten el wifi, abran Twitter... los posts siguen ahí."</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. LA PREGUNTA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">La pregunta</span>
+  <h2>Toda app necesita datos</h2>
+  <p>La pregunta de fondo siempre es la misma: <strong>¿de dónde sale la verdad?</strong> O sea, ¿cuál es la fuente confiable de la que la app saca lo que muestra.</p>
+  <div class="key-idea key-purple">💡 Hoy vamos a ver que hay <strong>tres respuestas</strong>, y que el repositorio se adapta a cada una.</div>
+  <p>Dos ya las conocen. La tercera es la de hoy.</p>
+</section>
+
+<!-- ══ 3. OPCIÓN 1 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Opción 1 · ya la vimos</span>
+  <h2>Solo la API</h2>
+  <div class="flow"><div class="fbox blue">API</div><span class="farrow">→</span><div class="fbox amber">Ktor</div><span class="farrow">→</span><div class="fbox purple">Repo</div><span class="farrow">→</span><div class="fbox teal">UI</div></div>
+  <p><strong>Cuándo:</strong> cuando siempre querés lo más fresco y no tiene sentido guardar nada: una búsqueda, una cotización en vivo, el clima, el marcador de un partido, el estado de un vuelo, el rastreo de un envío o la disponibilidad de un Uber.</p>
+  <p><strong>El patrón:</strong> Ktor + <ic>Result</ic>. El repositorio le pide a la API y devuelve el resultado. Esto es el Lab.</p>
+  <div class="key-idea key-red">💡 Sin internet: no hay nada que mostrar.</div>
+</section>
+
+<!-- ══ 4. OPCIÓN 2 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Opción 2 · ya la vimos</span>
+  <h2>Solo Room (local)</h2>
+  <div class="flow"><div class="fbox green">Room</div><span class="farrow">→</span><div class="fbox purple">Repo</div><span class="farrow">→</span><div class="fbox teal">UI</div></div>
+  <p><strong>Cuándo:</strong> cuando los datos solo viven en el teléfono y nunca van a un servidor: notas personales, ajustes de la app, una lista de tareas, un carrito de compras, favoritos, el historial de una calculadora, un diario o un catálogo que arma el mismo usuario.</p>
+  <p><strong>El patrón:</strong> Room + DAO con <ic>Flow</ic>. El repositorio lee y escribe en Room. Esto son los talleres.</p>
+  <div class="key-idea key-green">💡 No necesita internet nunca.</div>
+</section>
+
+<!-- ══ 5. EL ESCENARIO QUE FALTA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">El escenario que falta</span>
+  <h2>¿Y si viene de la API pero no hay señal?</h2>
+  <p>Con la opción 1, el dato vive en el servidor. Perfecto cuando hay internet. Pero el día que no hay señal, la pantalla queda vacía.</p>
+  <p>Vas en el bus sin datos, abrís la app de películas y no ves ni un afiche, aunque hace cinco minutos ya habías cargado la cartelera.</p>
+  <div class="key-idea key-amber">💡 Acá aparece una tercera opción: traer de la API, pero guardarlo para que siga estando sin internet.</div>
+</section>
+
+<!-- ══ 6. OPCIÓN 3 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Opción 3 · la de hoy</span>
+  <h2>La API y Room juntas</h2>
+  <div class="flow"><div class="fbox blue">API</div><span class="farrow">→</span><div class="fbox amber">Ktor</div><span class="farrow">→</span><div class="fbox green">Room</div><span class="farrow">→</span><div class="fbox purple">Repo</div><span class="farrow">→</span><div class="fbox teal">UI</div></div>
+  <p><strong>Cuándo:</strong> el dato viene de un servidor, pero querés los superpoderes del offline. Es el patrón <strong>más usado</strong>.</p>
+  <p><strong>El patrón:</strong> Room es la fuente de verdad. Ktor la mantiene actualizada. La UI siempre lee de Room.</p>
+  <div class="key-idea key-green">💡 Sin internet: Room responde con la última copia.</div>
+</section>
+
+<!-- ══ 7. SSOT ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Concepto</span>
+  <h2>Single Source of Truth</h2>
+  <div class="key-idea key-purple">💡 La UI <strong>siempre</strong> lee de Room. Room es el que manda.</div>
+  <p>Ktor no le habla a la pantalla. Solo se encarga de mantener Room actualizado. Cuando Room cambia, le avisa a la UI por medio de un <ic>Flow</ic>.</p>
+  <div class="flow"><div class="fbox green">Room manda</div><span class="farrow">·</span><div class="fbox amber">Ktor sincroniza</div><span class="farrow">·</span><div class="fbox teal">Flow conecta</div></div>
+</section>
+
+<!-- ══ 8. EL AMARRE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El amarre</span>
+  <h2>Tres opciones, ninguna mejor</h2>
+  <div class="cmp-grid">
+    <div class="cmp-card blue"><h3>Solo la API</h3><span class="mono">API → UI</span><p>Siempre lo más fresco, sin guardar.</p><p class="foot">Ktor + Result</p></div>
+    <div class="cmp-card green"><h3>Solo Room</h3><span class="mono">Room → UI</span><p>Datos solo locales, sin servidor.</p><p class="foot">Room + DAO</p></div>
+    <div class="cmp-card purple"><h3>API + Room</h3><span class="mono">API → Room → UI</span><p>Viene del server, querés offline.</p><p class="foot">SSOT + sync</p></div>
+  </div>
+  <div class="key-idea key-amber">💡 Ninguna es mejor. <strong>Depende del contexto:</strong> a veces no querés guardar en Room, a veces no querés mandar a un servidor, y la mayoría de las veces querés el offline.</div>
+</section>
+
+<!-- ══ 9. EL HILO EN COMÚN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El hilo en común</span>
+  <h2>El repositorio se adapta, la idea es la misma</h2>
+  <p>En las tres opciones, la UI hace exactamente lo mismo: le pide los datos al <strong>repositorio</strong>. La UI no sabe ni le importa de dónde salen.</p>
+  <p>El que decide es el repositorio: si pide a la API, si lee de Room, o si hace las dos cosas. Lo único que cambia entre opciones es esa implementación de adentro.</p>
+  <div class="key-idea key-purple">💡 Esa es la gracia del patrón Repository: cambiás la fuente sin tocar la UI.</div>
+</section>
+
+<!-- ══ 10. PARA QUE HAGA CLIC ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Para que haga clic</span>
+  <h2>Los superpoderes del offline</h2>
+  <p>Hagan la prueba: quiten el wifi y abran Facebook o Twitter. Igual les salen los últimos posts que ya habían cargado.</p>
+  <div class="key-idea key-green">💡 Eso es Room como fuente de verdad: los posts ya estaban guardados, así que la app los muestra aunque no haya señal.</div>
+  <p>Casi todas las apps que usan a diario funcionan así. Y eso es justo lo que vamos a construir.</p>
+</section>
+
+<!-- ══ 11. LO QUE SIGUE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Lo que sigue</span>
+  <h2>De la teoría al código</h2>
+  <p>Ya tenemos el mapa: tres opciones, y entendemos cuándo usar cada una. Ahora vamos a ver la tercera, la del offline, armada en la app de películas.</p>
+  <div class="key-idea key-purple">💡 Room como fuente de verdad, sincronizada con TMDB. Por encima, para entender las piezas.</div>
+</section>
+
+<!-- ══ 12. EL CÓDIGO · estructura ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El código</span>
+  <h2>Offline-first en la app de películas</h2>
+  <p>Veamos cómo se ve armado. Por encima, sin clavarnos en cada línea: eso lo van a practicar paso a paso en la guía.</p>
+<pre><code class="language-none">data/
+├── api/Movies/        MovieDto · GetMoviesResponseDto · KtorClient
+├── database/
+│   ├── dao/           MovieDao
+│   └── entities/      MovieEntity
+└── repositories/      MovieOfflineFirstRepository (+ Impl)
+model/                 Movie
+screens/
+├── MovieList/         MovieListScreen · MovieListViewModel
+└── MovieDetail/       MovieDetailScreen · MovieDetailViewModel</code></pre>
+</section>
+
+<!-- ══ 13. EL CÓDIGO · 1 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">El código · 1</span>
+  <h2>La interfaz: leer y sincronizar</h2>
+<pre><code class="language-kotlin">interface MovieOfflineFirstRepository {
+
+    // Leer: salen de Room, son reactivos (Flow)
+    fun getMovies(): Flow&lt;List&lt;Movie&gt;&gt;
+    fun getMovieById(id: Int): Flow&lt;Movie?&gt;
+
+    // Sincronizar: van a la API y guardan en Room
+    suspend fun refresh()
+    suspend fun refreshMovieById(id: Int)
+}</code></pre>
+  <div class="key-idea key-blue">💡 La forma de la interfaz ya cuenta la historia: dos métodos para <strong>leer</strong> (Flow, de Room) y dos para <strong>sincronizar</strong> (suspend, de la API).</div>
+</section>
+
+<!-- ══ 14. EL CÓDIGO · 2 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">El código · 2</span>
+  <h2>El repositorio: leer siempre de Room</h2>
+<pre><code class="language-kotlin">// Lista
+override fun getMovies(): Flow&lt;List&lt;Movie&gt;&gt; =
+    dao.getAll().map { list -&gt; list.map { it.toModel() } }
+
+// Detalle (el mismo patrón)
+override fun getMovieById(id: Int): Flow&lt;Movie?&gt; =
+    dao.observeById(id).map { it?.toModel() }</code></pre>
+  <div class="key-idea key-green">💡 Leer es siempre lo mismo: un <ic>Flow</ic> que sale de Room y convierte <ic>Entity → Model</ic>. La UI observa esto y se actualiza sola.</div>
+</section>
+
+<!-- ══ 15. EL CÓDIGO · 3 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">El código · 3</span>
+  <h2>El repositorio: sincronizar API → Room</h2>
+<pre><code class="language-kotlin">override suspend fun refresh() {
+    val popular = fetchPopular()                  // trae DTOs de la API
+    dao.upsertAll(popular.map { it.toEntity() })  // los guarda en Room
+}
+
+private suspend fun fetchPopular(): List&lt;MovieDto&gt; =
+    KtorClient.client.get("movie/popular") {
+        parameter("language", "es-ES")
+        parameter("page", 1)
+    }.body&lt;GetMoviesResponseDto&gt;().results</code></pre>
+  <div class="key-idea key-amber">💡 Sincronizar no toca la UI: solo trae <ic>DTOs</ic> y hace <ic>upsert</ic>. El <ic>Flow</ic> de <ic>getMovies()</ic> emite solo con los datos nuevos.</div>
+</section>
+
+<!-- ══ 16. EL CÓDIGO · 4 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">El código · 4</span>
+  <h2>El ViewModel: observar y refrescar</h2>
+<pre><code class="language-kotlin">val movies: StateFlow&lt;List&lt;Movie&gt;&gt; = repository.getMovies()
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+init { refresh() }
+
+fun refresh() {
+    viewModelScope.launch {
+        _error.value = null
+        _isRefreshing.value = true
+        try {
+            repository.refresh()
+        } catch (_: Exception) {
+            if (movies.value.isEmpty()) {
+                _error.value = "Sin conexión y sin datos en caché"
+            }
+        }
+        _isRefreshing.value = false
+    }
+}</code></pre>
+  <div class="key-idea key-green">💡 El error <strong>solo</strong> aparece si Room está vacío. Si ya hay cache, un fallo de red es silencioso: el usuario sigue viendo sus películas. Eso es offline-first.</div>
+</section>
+
+<!-- ══ 17. EL CÓDIGO · 5 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">El código · 5</span>
+  <h2>La pantalla: tres estados</h2>
+<pre><code class="language-kotlin">// 1. Cargando: Room vacío y todavía esperando a la API
+if (movies.isEmpty() &amp;&amp; isRefreshing) { /* spinner */ }
+
+// 2. Error sin cache: la API falló y no hay nada guardado
+if (movies.isEmpty() &amp;&amp; error != null) { /* mensaje + Reintentar */ }
+
+// 3. Datos: hay cache (con o sin internet)
+PullToRefreshBox(isRefreshing, onRefresh = { refresh() }) {
+    LazyColumn { items(movies) { MovieItem(it) } }
+}</code></pre>
+  <p class="foot">El spinner y el error solo salen cuando no hay <strong>nada</strong> que mostrar. Si hay cache, siempre se ve la lista.</p>
+</section>
+
+<!-- ══ 18. EL CÓDIGO · 6 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El código · 6</span>
+  <h2>El detalle: el mismo patrón</h2>
+<pre><code class="language-kotlin">val movie: StateFlow&lt;Movie?&gt; = repository.getMovieById(movieId)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+init { refresh() }   // refresh() llama a refreshMovieById(movieId)
+
+// La Factory recibe el id de la película
+fun Factory(movieId: Int) = viewModelFactory {
+    initializer {
+        MovieDetailViewModel(repository, movieId)
+    }
+}</code></pre>
+  <div class="key-idea key-purple">💡 Idéntico a la lista: observa Room, refresca al entrar. La <ic>Factory</ic> recibe el <ic>id</ic> (assisted injection, sin librerías extra).</div>
+</section>
+
+<!-- ══ 19. EL HILO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El hilo</span>
+  <h2>Un solo patrón, repetido</h2>
+  <p>Lista y detalle son la misma idea: <strong>leer</strong> de Room con <ic>Flow</ic>, y <strong>sincronizar</strong> con la API por aparte.</p>
+  <div class="flow"><div class="fbox green">Leer<br><small>Flow de Room</small></div><span class="farrow">+</span><div class="fbox amber">Sincronizar<br><small>API → Room</small></div></div>
+  <div class="key-idea key-purple">💡 Una vez que entendés el patrón, lo repetís para cualquier dato: películas, favoritos, lo que sea.</div>
+</section>
+
+<!-- ══ 20. LO QUE VIENE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Lo que viene</span>
+  <h2>Ahora les toca a ustedes</h2>
+  <p>La teoría ya la tienen, y vieron las piezas del código. En la guía van a armar todo esto paso a paso, a su ritmo.</p>
+  <div class="key-idea key-amber">💡 Lo que viene es escribir código: del mapa que ya entienden, a la app que funciona sin internet.</div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
