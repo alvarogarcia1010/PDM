@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de login y sesión con DataStore</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+  --ink:#23262e; --muted:#6b7280; --line:#e8e6df;
+}
+* { box-sizing:border-box; }
+body {
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  color:var(--ink); background:#FCFBF8; margin:0;
+  line-height:1.65; font-size:18px;
+}
+.wrap { max-width:860px; margin:0 auto; padding:0 22px 120px; }
+
+/* hero */
+.hero { padding:56px 0 30px; border-bottom:1px solid var(--line); margin-bottom:36px; }
+.kicker { display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--teal-dark); background:var(--teal-bg); padding:5px 13px; border-radius:20px; }
+.hero-accent { width:60px; height:4px; background:var(--teal-mid); border-radius:3px; margin:18px 0 14px; }
+h1 { font-size:40px; line-height:1.12; letter-spacing:-0.02em; margin:0 0 10px; color:var(--purple-dark); font-weight:800; }
+.subtitle { font-size:19px; color:var(--muted); margin:0; }
+
+h2 { font-size:27px; letter-spacing:-0.015em; color:#1a1a1a; margin:54px 0 6px; font-weight:800; }
+h2 .step-pill { display:inline-block; font-size:13px; font-weight:700; color:var(--purple-mid); background:var(--purple-bg); border-radius:8px; padding:2px 10px; margin-right:10px; vertical-align:middle; }
+h3 { font-size:20px; color:var(--blue-dark); margin:32px 0 4px; font-weight:700; }
+p { margin:14px 0; }
+.lead { font-size:20px; color:#3a3f4a; }
+strong { color:#111; font-weight:700; }
+a { color:var(--blue-mid); }
+hr.soft { border:none; border-top:1px solid var(--line); margin:46px 0; }
+
+ic { background:#ecebf6; color:var(--purple-dark); padding:1px 6px; border-radius:5px; font-family:'Fira Code','Consolas',monospace; font-size:0.86em; }
+
+/* code window */
+.codewin { border-radius:12px; overflow:hidden; box-shadow:0 12px 30px rgba(30,28,70,0.10); border:1px solid #e6e6e6; margin:18px 0; }
+.codewin .bar { display:flex; align-items:center; gap:7px; padding:9px 14px; background:linear-gradient(#f4f4f7,#ededf1); border-bottom:1px solid #e6e6e6; }
+.codewin .dot { width:11px; height:11px; border-radius:50%; }
+.codewin .fname { margin-left:8px; font-family:'Fira Code',monospace; font-size:12.5px; color:#7a7d88; }
+.codewin pre { margin:0 !important; border-radius:0 !important; background:#fafafa !important; border:none !important; font-size:14px !important; line-height:1.6; padding:16px 18px !important; overflow:auto; }
+.codewin code { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#9499a3; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+/* callouts */
+.callout { border-radius:12px; padding:16px 20px; margin:22px 0; border-left:5px solid; font-size:17px; }
+.callout .ct { display:block; font-weight:800; font-size:13px; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:5px; }
+.callout p { margin:6px 0; }
+.why   { background:var(--blue-bg);   border-color:var(--blue-mid); }
+.why .ct   { color:var(--blue-dark); }
+.key   { background:var(--purple-bg); border-color:var(--purple-mid); }
+.key .ct   { color:var(--purple-dark); }
+.warn  { background:var(--amber-bg);  border-color:var(--amber-mid); }
+.warn .ct  { color:var(--amber-dark); }
+.check { background:var(--green-bg);  border-color:var(--green-mid); }
+.check .ct { color:var(--green-dark); }
+
+/* pieces grid */
+.pieces { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:22px 0; }
+.piece { background:#fff; border:1px solid var(--line); border-top:3px solid var(--teal-mid); border-radius:12px; padding:16px; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.piece h4 { margin:0 0 6px; color:var(--teal-dark); font-size:17px; }
+.piece p { margin:0; font-size:15px; color:#555; line-height:1.5; }
+
+.flow { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; margin:24px 0; padding:20px 16px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.flow-box { background:#fbfbfd; border:1px solid var(--line); border-bottom:3px solid var(--purple-mid); border-radius:10px; padding:10px 16px; text-align:center; font-weight:700; font-size:15px; color:#2a2a2a; white-space:nowrap; }
+.flow-box .sub { display:block; font-weight:400; font-size:11.5px; color:var(--muted); margin-top:3px; }
+.flow-box.view { border-bottom-color:var(--green-mid); }
+.flow-box.vm   { border-bottom-color:var(--blue-mid); }
+.flow-box.repo { border-bottom-color:var(--purple-mid); }
+.flow-box.room { border-bottom-color:var(--teal-mid); }
+.flow-box.gen  { border-bottom-color:var(--amber-mid); }
+.flow-arrow { color:var(--purple-mid); font-size:18px; font-weight:800; }
+.diagram { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 14px 10px; margin:24px 0; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.diagram svg { width:100%; height:auto; display:block; }
+.diagram-cap { text-align:center; font-size:13px; color:var(--muted); margin:10px 0 4px; font-style:italic; }
+
+.toc { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 24px; margin:30px 0; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.toc h4 { margin:0 0 10px; font-size:14px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); }
+.toc ol { margin:0; padding-left:22px; }
+.toc li { margin:5px 0; }
+.toc a { text-decoration:none; }
+.toc a:hover { text-decoration:underline; }
+
+@media (max-width:620px){ .pieces{ grid-template-columns:1fr; } h1{ font-size:32px; } body{ font-size:17px; } }
+
+.tag { margin-left:auto; font-size:10px; font-weight:800; letter-spacing:0.06em; padding:2px 8px; border-radius:6px; }
+.tag.new { background:#e3f3e1; color:#27500A; }
+.tag.mod { background:#FAEEDA; color:#633806; }
+.diff { font-family:'Fira Code','Consolas',monospace; font-size:13.5px; line-height:1.62; margin:0 !important; padding:14px 0 !important; background:#fafafa !important; overflow:auto; }
+.diff .ln { display:block; white-space:pre; padding:0 18px 0 34px; position:relative; }
+.diff .ln.add { background:#e3f3e1; }
+.diff .ln.del { background:#fbe7e7; }
+.diff .ln.add::before { content:'+'; position:absolute; left:14px; color:#3B6D11; font-weight:700; }
+.diff .ln.del::before { content:'-'; position:absolute; left:14px; color:#A32D2D; font-weight:700; }
+.chip { padding:0 5px; border-radius:4px; font-weight:700; }
+.chip.g { background:#e3f3e1; color:#27500A; }
+.chip.r { background:#fbe7e7; color:#A32D2D; }
+.task { background:#fff; border:1.5px dashed var(--purple-mid); border-radius:12px; padding:18px 22px; margin:24px 0; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.task .tt { font-weight:800; color:var(--purple-dark); font-size:14px; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+.task ul { margin:8px 0; padding-left:22px; }
+.task li { margin:6px 0; }
+.task p { margin:10px 0; }
+.task-hint { font-size:15px; color:var(--purple-mid); font-style:italic; margin:10px 0 0; }
+.rubric { margin:22px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 5px 16px rgba(30,28,70,0.05); }
+.rrow { display:flex; align-items:flex-start; gap:16px; padding:16px 20px; border-bottom:1px solid var(--line); background:#fff; }
+.rrow:last-child { border-bottom:none; }
+.rpct { font-size:26px; font-weight:800; color:var(--purple-dark); min-width:62px; text-align:right; line-height:1.15; }
+.rbody { display:flex; flex-direction:column; gap:3px; }
+.rbody strong { color:#111; font-size:17px; }
+.rbody span { color:#555; font-size:15px; line-height:1.5; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <span class="kicker">PDM · 01-2026 · Guía de login</span>
+  <div class="hero-accent"></div>
+  <h1>Login y sesión: la app que te recuerda</h1>
+  <p class="subtitle">El usuario entra una vez, guardamos su sesión con DataStore, y la app lo recuerda hasta que cierre sesión.</p>
+</div>
+
+<p class="lead">En esta guía armamos el <strong>login</strong> de punta a punta: la pantalla, la llamada a la API, guardar la sesión para no pedir credenciales cada vez, y que la navegación decida sola entre la pantalla de login y el resto de la app.</p>
+<div class="callout key"><span class="ct">La pieza nueva de hoy: DataStore</span><p>Para recordar al usuario necesitamos guardar algo en el teléfono (el token de sesión). Para eso usamos <strong>DataStore</strong>, la forma moderna de guardar datos chiquitos y simples en Android.</p></div>
+<div class="toc">
+  <h4>Lo que vamos a armar</h4>
+  <ol>
+    <li><a href="#flujo">El flujo del login</a></li>
+    <li><a href="#contrato">El contrato de la API</a></li>
+    <li><a href="#datastore">DataStore: guardar la sesión</a></li>
+    <li><a href="#dtos">Los DTOs del login</a></li>
+    <li><a href="#repo">El AuthRepository</a></li>
+    <li><a href="#provider">El cableado</a></li>
+    <li><a href="#vm">El AuthViewModel</a></li>
+    <li><a href="#pantalla">La pantalla de login</a></li>
+    <li><a href="#nav">La navegación según la sesión</a></li>
+    <li><a href="#logout">Cerrar sesión</a></li>
+    <li><a href="#token">Mandar el token (para después)</a></li>
+    <li><a href="#checkpoint">Checkpoint</a></li>
+    <li><a href="#tarea">Tu turno</a></li>
+  </ol>
+</div>
+
+<hr class="soft">
+
+<h2 id="flujo"><span class="step-pill">1</span>El flujo del login</h2>
+<p>El login no es solo una pantalla bonita. Son cuatro momentos encadenados:</p>
+<div class="flow"><div class="flow-box view">Login<span class="sub">credenciales</span></div><span class="flow-arrow">→</span><div class="flow-box gen">API<span class="sub">devuelve token</span></div><span class="flow-arrow">→</span><div class="flow-box room">DataStore<span class="sub">guarda</span></div><span class="flow-arrow">→</span><div class="flow-box view">App<span class="sub">te recuerda</span></div></div>
+<p>El usuario mete su correo y contraseña, la API le responde con un <strong>token</strong> (su llave de sesión), guardamos ese token en DataStore, y de ahí en adelante la app sabe que está logueado. La próxima vez que abra, ni le pedimos login: ya hay token guardado.</p>
+<div class="callout why">
+  <span class="ct">Qué es un token</span>
+  <p>Es un texto que el servidor te da cuando te logueás, y que prueba quién sos. En vez de mandar tu contraseña en cada petición, mandás el token. Si lo borrás (logout), la sesión se cierra.</p>
+</div>
+
+<hr class="soft">
+
+<h2 id="contrato"><span class="step-pill">2</span>El contrato de la API</h2>
+<p>Antes de tocar Android, hay que saber qué pide y qué devuelve el login. Lo de abajo es un <strong>ejemplo</strong> de lo que debería devolver el endpoint de login de la API de su proyecto. Tómenlo como referencia y ajústenlo a la suya:</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">POST /auth/login</span></div>
+<pre><code class="language-json">// Le mandamos:
+{
+  "email": "ana@uca.edu.sv",
+  "password": "123456"
+}
+
+// Si las credenciales están bien (200):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+  "user": { "id": 1, "name": "Ana", "email": "ana@uca.edu.sv" }
+}
+
+// Si están mal (401):
+{ "error": "Credenciales inválidas" }</code></pre>
+</div><div class="callout check"><span class="ct">De aquí salen los DTOs</span><p>Ese JSON es justo lo que vamos a modelar con DTOs: uno para lo que mandamos (<ic>LoginRequestDto</ic>) y otro para lo que recibimos (<ic>LoginResponseDto</ic>).</p></div>
+<hr class="soft">
+
+<h2 id="datastore"><span class="step-pill">3</span>DataStore: guardar la sesión</h2>
+<p>Para que la app recuerde al usuario hay que guardar el token en el teléfono. La herramienta moderna para eso es <strong>DataStore</strong>: guarda datos pequeños y simples (pares clave-valor) de forma asíncrona, sin bloquear la app, y te los entrega como un <ic>Flow</ic>, igual que Room. <strong>Acá es donde vamos a guardar el token de sesión y el nombre del usuario.</strong></p>
+<div class="callout why"><span class="ct">¿Hay otra forma de guardarlo?</span><p>Sí, y vale la pena conocer las dos alternativas:</p><p>• Las <ic>SharedPreferences</ic> de toda la vida hacen lo mismo, pero son la versión vieja. DataStore las reemplaza justamente por ser asíncrono y trabajar con Flow, así que entre las dos elegimos DataStore.</p><p>• Para datos de verdad sensibles, lo ideal es guardarlos <strong>cifrados</strong> (por ejemplo usando el Android Keystore). Un token de sesión idealmente iría cifrado, pero eso es más complejo y queda fuera del scope. Para aprender el patrón, DataStore en texto plano está perfecto; solo tené presente que en una app real lo endurecerías.</p></div><p>Primero la dependencia, en el catálogo de versiones:</p><div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">gradle/libs.versions.toml</span></div>
+<pre><code class="language-toml">[versions]
+datastore = "1.2.1"
+
+[libraries]
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }</code></pre>
+</div><p>Creamos el DataStore una sola vez, a nivel de archivo (como una propiedad de extensión sobre <ic>Context</ic>):</p><div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/session/SessionManager.kt  (arriba del archivo)</span></div>
+<pre><code class="language-kotlin">val Context.dataStore: DataStore&lt;Preferences&gt; by preferencesDataStore(name = "session")</code></pre>
+</div><p>Y armamos un <ic>SessionManager</ic> que envuelve DataStore: sabe leer el token (como Flow) y guardarlo o borrarlo.</p><div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/session/SessionManager.kt</span></div>
+<pre><code class="language-kotlin">class SessionManager(private val context: Context) {
+
+    companion object {
+        private val TOKEN_KEY = stringPreferencesKey("auth_token")
+        private val NAME_KEY = stringPreferencesKey("user_name")
+    }
+
+    // Lectura reactiva: emite cada vez que cambia
+    val token: Flow&lt;String?&gt; = context.dataStore.data.map { it[TOKEN_KEY] }
+    val userName: Flow&lt;String?&gt; = context.dataStore.data.map { it[NAME_KEY] }
+
+    suspend fun save(token: String, name: String) {
+        context.dataStore.edit { prefs -&gt;
+            prefs[TOKEN_KEY] = token
+            prefs[NAME_KEY] = name
+        }
+    }
+
+    suspend fun clear() {
+        context.dataStore.edit { it.clear() }
+    }
+}</code></pre>
+</div><div class="callout why"><span class="ct">Por qué un Flow otra vez</span><p>Que el token sea un <ic>Flow</ic> es lo que hace toda la magia: cuando guardás o borrás el token, quien lo esté observando se entera al toque. Así la navegación va a saber sola cuándo mostrar el login y cuándo el home.</p></div>
+<hr class="soft">
+
+<h2 id="dtos"><span class="step-pill">4</span>Los DTOs del login</h2>
+<p>Modelamos el contrato de la API. Uno para la petición, uno para la respuesta, y uno para el usuario que viene adentro:</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/api/Auth/AuthDtos.kt</span></div>
+<pre><code class="language-kotlin">@Serializable
+data class LoginRequestDto(
+    val email: String,
+    val password: String
+)
+
+@Serializable
+data class LoginResponseDto(
+    val token: String,
+    val user: UserDto
+)
+
+@Serializable
+data class UserDto(
+    val id: Int,
+    val name: String,
+    val email: String
+)</code></pre>
+</div>
+<hr class="soft">
+
+<h2 id="repo"><span class="step-pill">5</span>El AuthRepository</h2>
+<p>El repositorio junta las dos mitades: le pega a la API para loguear, y usa el <ic>SessionManager</ic> para guardar el token. También expone si hay sesión activa, como Flow.</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/repositories/AuthRepository.kt</span></div>
+<pre><code class="language-kotlin">interface AuthRepository {
+    val isLoggedIn: Flow&lt;Boolean&gt;
+    val userName: Flow&lt;String?&gt;
+    suspend fun login(email: String, password: String)
+    suspend fun logout()
+}</code></pre>
+</div><div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/repositories/AuthRepositoryImpl.kt</span></div>
+<pre><code class="language-kotlin">class AuthRepositoryImpl(
+    private val session: SessionManager
+) : AuthRepository {
+
+    // Hay sesión si hay token guardado
+    override val isLoggedIn: Flow&lt;Boolean&gt; = session.token.map { it != null }
+    override val userName: Flow&lt;String?&gt; = session.userName
+
+    override suspend fun login(email: String, password: String) {
+        val response: LoginResponseDto = KtorClient.client.post("auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody(LoginRequestDto(email, password))
+        }.body()
+
+        // Login exitoso: guardamos la sesión
+        session.save(response.token, response.user.name)
+    }
+
+    override suspend fun logout() {
+        session.clear()
+    }
+}</code></pre>
+</div><div class="callout key"><span class="ct">Fijate el orden en login()</span><p>Primero le pegamos a la API. Si las credenciales están mal, <ic>body()</ic> tira excepción y nunca llegamos a guardar nada. Solo si el login sale bien, guardamos el token. Igual que con las mutaciones del offline-first: primero la API, luego lo local.</p></div>
+<hr class="soft">
+
+<h2 id="provider"><span class="step-pill">6</span>El cableado</h2>
+<p>El <ic>AuthRepository</ic> necesita un <ic>SessionManager</ic>, que a su vez necesita el <ic>Context</ic>. Eso lo arma tu <ic>AppProvider</ic>, igual que el repositorio de películas.</p>
+<div class="task"><div class="tt">Conectá el AuthRepository</div><p>En tu <ic>AppProvider</ic>, agregá lo necesario para entregar el <ic>AuthRepository</ic> ya armado con su <ic>SessionManager</ic>. Las Factories lo van a pedir así:</p><ul><li><ic>app.appProvider.provideAuthRepository()</ic></li></ul><p class="task-hint">El <ic>SessionManager</ic> necesita el <ic>Context</ic> de la aplicación, que ya tenés en el AppProvider.</p></div>
+<hr class="soft">
+
+<h2 id="vm"><span class="step-pill">7</span>El AuthViewModel</h2>
+<p>El ViewModel expone el estado de sesión y maneja el login con su carga y su error, igual que veníamos haciendo.</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">AuthViewModel.kt</span></div>
+<pre><code class="language-kotlin">class AuthViewModel(
+    private val repository: AuthRepository
+) : ViewModel() {
+
+    // null = todavía no sabemos (DataStore cargando)
+    val isLoggedIn: StateFlow&lt;Boolean?&gt; = repository.isLoggedIn
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val userName: StateFlow&lt;String?&gt; = repository.userName
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow&lt;Boolean&gt; = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow&lt;String?&gt;(null)
+    val error: StateFlow&lt;String?&gt; = _error.asStateFlow()
+
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+            _error.value = null
+            _isLoading.value = true
+            try {
+                repository.login(email, password)
+            } catch (e: Exception) {
+                _error.value = "Correo o contraseña incorrectos"
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch { repository.logout() }
+    }
+}</code></pre>
+</div><div class="callout warn"><span class="ct">El estado arranca en null, no en false</span><p>Cuando la app abre, DataStore tarda un instante en cargar. Si arrancáramos en <ic>false</ic>, se vería un parpadeo del login antes de saltar al home. Por eso <ic>isLoggedIn</ic> empieza en <ic>null</ic>: significa "todavía no sé", y mostramos una pantalla de carga mientras tanto.</p></div>
+<hr class="soft">
+
+<h2 id="pantalla"><span class="step-pill">8</span>La pantalla de login</h2>
+<p>Un formulario simple: correo, contraseña, un botón que se desactiva mientras carga, y el error si las credenciales fallan.</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">screens/Login/LoginScreen.kt</span></div>
+<pre><code class="language-kotlin">@Composable
+fun LoginScreen(
+    viewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory)
+) {
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Bienvenido a RankeUCA", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Correo") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Contraseña") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(error!!, color = MaterialTheme.colorScheme.error)
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Button(
+            onClick = { viewModel.login(email, password) },
+            enabled = !isLoading &amp;&amp; email.isNotBlank() &amp;&amp; password.isNotBlank(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
+            else Text("Entrar")
+        }
+    }
+}</code></pre>
+</div><div class="callout check"><span class="ct">Detalles que cuidamos</span><p>El botón se desactiva si los campos están vacíos o mientras carga, así no se manda un login a medias. Y la contraseña va con <ic>PasswordVisualTransformation()</ic> para que se vea con puntitos.</p></div>
+<hr class="soft">
+
+<h2 id="nav"><span class="step-pill">9</span>La navegación según la sesión</h2>
+<p>Acá está el premio de todo lo anterior. La frontera entre estar logueado y no estarlo la decide el <strong>estado de sesión</strong>, no la navegación normal. Por eso la ponemos arriba de todo, antes del back stack.</p>
+<p>El <ic>AppRoot</ic> mira <ic>isLoggedIn</ic> y elige: pantalla de carga, login, o la app completa. Y la app completa ya usa <strong>Navigation 3</strong>, igual que en la app de películas. Primero, las llaves de las rutas:</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">navigation/Routes.kt</span></div>
+<pre><code class="language-kotlin">@Serializable data object MovieList : NavKey
+@Serializable data class MovieDetail(val id: Int) : NavKey</code></pre>
+</div><p>Luego el <ic>AppRoot</ic>, que decide según la sesión:</p><div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">AppRoot.kt</span></div>
+<pre><code class="language-kotlin">@Composable
+fun AppRoot(
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory)
+) {
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+    when (isLoggedIn) {
+        null -&gt; SplashScreen()          // DataStore todavía cargando
+        false -&gt; LoginScreen()          // sin sesión
+        true -&gt; MainNavigation(         // con sesión: la app completa
+            userName = authViewModel.userName.collectAsState().value,
+            onLogout = { authViewModel.logout() }
+        )
+    }
+}</code></pre>
+</div><p>Y la parte logueada usa Navigation 3 como siempre: un back stack propio y un <ic>NavDisplay</ic> con las pantallas.</p><div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">navigation/MainNavigation.kt</span></div>
+<pre><code class="language-kotlin">@Composable
+fun MainNavigation(userName: String?, onLogout: () -&gt; Unit) {
+    val backStack = rememberNavBackStack(MovieList)
+
+    NavDisplay(
+        backStack = backStack,
+        onBack = { backStack.removeLastOrNull() },
+        entryProvider = entryProvider {
+            entry&lt;MovieList&gt; {
+                MovieListScreen(
+                    userName = userName,
+                    onLogout = onLogout,
+                    navigateToDetail = { id -&gt; backStack.add(MovieDetail(id)) }
+                )
+            }
+            entry&lt;MovieDetail&gt; { key -&gt;
+                MovieDetailScreenV2(
+                    movieId = key.id,
+                    navigateBack = { backStack.removeLastOrNull() }
+                )
+            }
+        }
+    )
+}</code></pre>
+</div><div class="callout key"><span class="ct">El login vive afuera del back stack</span><p>Fijate que el login <strong>no</strong> es una pantalla más del <ic>NavDisplay</ic>. La frontera con sesión / sin sesión la decide el estado, no el back stack.</p><p>Así, cuando alguien cierra sesión, no "navegás" al login: el estado cambia, el <ic>when</ic> reacciona, y todo el back stack de la app se descarta entero. Sin el típico bug de apretar atrás y volver a una pantalla privada.</p></div>
+<hr class="soft">
+
+<h2 id="logout"><span class="step-pill">10</span>Cerrar sesión</h2>
+<p>El logout es lo más simple de todo, justamente porque la navegación es reactiva. Borrás el token, y la app vuelve sola al login.</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">en el Home, un botón</span></div>
+<pre><code class="language-kotlin">Button(onClick = onLogout) {
+    Text("Cerrar sesión")
+}
+// onLogout llama a viewModel.logout(), que borra el token del DataStore.
+// isLoggedIn pasa a false, y AppRoot muestra el LoginScreen otra vez.</code></pre>
+</div>
+<hr class="soft">
+
+<h2 id="token"><span class="step-pill">11</span>Mandar el token (para cuando protejas la API)</h2>
+<p>Hoy nuestra API está abierta, así que el token no hace falta para nada después de loguearte. Pero el día que protejás algún endpoint, vas a tener que mandar el token en cada petición. Así se hace:</p>
+<div class="codewin">
+  <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="fname">data/api/KtorClient.kt</span></div>
+<pre><code class="language-kotlin">object KtorClient {
+
+    // Se actualiza al loguear y al cerrar sesión
+    var authToken: String? = null
+
+    val client = HttpClient(OkHttp) {
+        defaultRequest {
+            url(BASE_URL)
+            authToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        }
+        // ... resto de la config ...
+    }
+}</code></pre>
+</div><div class="callout why"><span class="ct">Cómo se mantiene actualizado</span><p>Al loguear, ponés <ic>KtorClient.authToken = token</ic>. Al cerrar sesión, lo dejás en <ic>null</ic>. Y al abrir la app, lo cargás desde DataStore. Para apps más grandes, Ktor tiene el plugin <ic>Auth</ic> que automatiza esto, pero para empezar, esta versión se entiende mejor.</p></div>
+<hr class="soft">
+
+<h2 id="checkpoint"><span class="step-pill">12</span>Checkpoint</h2>
+<p>Tu login está completo cuando:</p>
+<div class="callout check"><span class="ct">Deberías tener funcionando</span><p>• La pantalla de login manda las credenciales y muestra error si están mal.<br>• Tras loguearte, la app salta sola al home y te saluda con tu nombre.<br>• Si cerrás la app y la volvés a abrir, seguís logueado (no te pide login de nuevo).<br>• El botón de cerrar sesión te regresa al login, también solo.</p></div>
+<hr class="soft">
+
+<h2 id="tarea"><span class="step-pill">13</span>Tu turno</h2>
+<p>Integrá este login en tu app de RankeUCA, contra el endpoint de login que vas a tener disponible.</p>
+<div class="task"><div class="tt">Lo que tenés que entregar</div><ul><li>Una <strong>pantalla de login</strong> que valide contra la API y guarde la sesión en DataStore.</li><li>Que la app <strong>recuerde la sesión</strong>: si la cerrás y la abrís, seguís adentro.</li><li>La <strong>navegación reactiva</strong>: sin sesión se ve el login, con sesión se ve la app.</li><li>Un <strong>saludo</strong> al usuario con su nombre, y un botón de <strong>cerrar sesión</strong>.</li></ul></div><div class="callout why"><span class="ct">Acordate de la pantalla de carga</span><p>El detalle de arrancar <ic>isLoggedIn</ic> en <ic>null</ic> y mostrar un splash mientras DataStore carga es lo que evita el parpadeo del login al abrir. No te lo saltés: es lo que separa una app que se siente pulida de una que titila.</p></div><div class="callout check"><span class="ct">Puntos de aceptación</span><p>Tu entrega está lista cuando:</p><p>• Con credenciales correctas, entrás y la app te recuerda al reabrir.<br>• Con credenciales incorrectas, ves un mensaje claro y no entrás.<br>• El logout te saca y te devuelve al login, sin navegar a mano.<br>• No hay parpadeo del login al abrir la app con sesión activa.</p></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-toml.min.js"></script>
+</body>
+</html>
