@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De Android a todas partes: Kotlin Multiplatform — PDM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<style>
+:root {
+  --purple-bg:#EEEDFE; --purple-dark:#3C3489; --purple-mid:#534AB7;
+  --teal-bg:#E1F5EE;   --teal-dark:#085041;   --teal-mid:#0F6E56;
+  --amber-bg:#FAEEDA;  --amber-dark:#633806;  --amber-mid:#854F0B;
+  --blue-bg:#E6F1FB;   --blue-dark:#0C447C;   --blue-mid:#185FA5;
+  --red-bg:#FCEBEB;    --red-dark:#791F1F;    --red-mid:#A32D2D;
+  --green-bg:#EAF3DE;  --green-dark:#27500A;  --green-mid:#3B6D11;
+}
+.reveal { font-family:'Segoe UI',system-ui,sans-serif; }
+.reveal .slides section {
+  display:flex !important; flex-direction:column;
+  justify-content:center; padding:0 48px;
+  box-sizing:border-box; height:100%;
+}
+.reveal h1,.reveal h2 { font-weight:700; text-transform:none; letter-spacing:-0.01em; margin:0 0 0.22em; }
+.reveal h1 { font-size:1.55em; }
+.reveal h2 { font-size:1.18em; color:#1a1a1a; }
+.reveal p  { font-size:0.62em; line-height:1.6; color:#444; margin:0 0 0.26em; }
+.reveal ul { margin:0.1em 0 0.2em 1em; }
+.reveal li { font-size:0.6em; line-height:1.6; color:#444; margin:0.22em 0; }
+
+.tag { display:inline-block; font-size:0.32em; font-weight:700; padding:3px 11px; border-radius:20px; margin-bottom:0.3em; text-transform:uppercase; letter-spacing:0.07em; }
+.tag-purple { background:var(--purple-bg); color:var(--purple-dark); }
+.tag-teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.tag-amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.tag-blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.tag-red    { background:var(--red-bg);    color:var(--red-dark); }
+.tag-green  { background:var(--green-bg);  color:var(--green-dark); }
+.tag-gray   { background:#f0f0f0; color:#444; }
+
+.key-idea { padding:0.5em 0.95em; border-radius:8px; border-left:4px solid; font-size:0.6em !important; font-weight:600; line-height:1.55; text-align:left; margin-top:0.4em; }
+.key-purple { background:var(--purple-bg); border-color:var(--purple-mid); color:var(--purple-dark); }
+.key-teal   { background:var(--teal-bg);   border-color:var(--teal-mid);   color:var(--teal-dark); }
+.key-amber  { background:var(--amber-bg);  border-color:var(--amber-mid);  color:var(--amber-dark); }
+.key-blue   { background:var(--blue-bg);   border-color:var(--blue-mid);   color:var(--blue-dark); }
+.key-red    { background:var(--red-bg);    border-color:var(--red-mid);    color:var(--red-dark); }
+.key-green  { background:var(--green-bg);  border-color:var(--green-mid);  color:var(--green-dark); }
+
+pre[class*="language-"] { font-size:0.4em !important; line-height:1.5; border-radius:8px; padding:0.85em 1em !important; margin:0.3em 0 !important; max-height:490px; overflow:auto; background:#fafafa !important; border:1px solid #e0e0e0; }
+code[class*="language-"] { font-family:'Fira Code','Consolas',monospace; }
+.token.keyword { color:#7B2CBF; }
+.token.string { color:#1B5E20; }
+.token.function { color:#0C447C; }
+.token.class-name { color:#854F0B; }
+.token.comment { color:#888; font-style:italic; }
+.token.annotation, .token.builtin { color:#534AB7; }
+.token.number { color:#A32D2D; }
+
+ic { background:#e8e8e8; padding:1px 5px; border-radius:4px; font-family:'Fira Code',monospace; font-size:0.85em; }
+
+.foot { font-size:0.55em; color:#666; margin-top:0.3em; }
+
+/* flujo de cajas (capas, plataformas, source sets...) */
+.flow { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin:0.45em 0; }
+.fbox { font-size:0.5em; font-weight:700; text-align:center; padding:11px 15px; border-radius:10px; line-height:1.25; }
+.fbox small, .fbox .sub { display:block; font-weight:500; opacity:0.8; font-size:0.85em; margin-top:2px; }
+.fbox.purple { background:var(--purple-bg); color:var(--purple-dark); }
+.fbox.teal   { background:var(--teal-bg);   color:var(--teal-dark); }
+.fbox.amber  { background:var(--amber-bg);  color:var(--amber-dark); }
+.fbox.blue   { background:var(--blue-bg);   color:var(--blue-dark); }
+.fbox.green  { background:var(--green-bg);  color:var(--green-dark); }
+.farrow { font-size:0.5em; font-weight:700; color:#8a90a0; }
+
+/* tarjetas de comparación */
+.cmp-grid { display:flex; gap:16px; margin-top:0.3em; }
+.cmp-card { flex:1; background:#f7f7f7; border-radius:10px; padding:0.7em 0.95em; border-top:3px solid; text-align:left; }
+.cmp-card h3 { font-size:0.6em; font-weight:700; margin:0 0 0.3em; }
+.cmp-card p { font-size:0.52em; color:#444; line-height:1.5; margin:0; }
+.cmp-card.teal   { border-color:var(--teal-mid); }   .cmp-card.teal h3   { color:var(--teal-dark); }
+.cmp-card.purple { border-color:var(--purple-mid); } .cmp-card.purple h3 { color:var(--purple-dark); }
+.cmp-card.blue   { border-color:var(--blue-mid); }   .cmp-card.blue h3   { color:var(--blue-dark); }
+.cmp-card.green  { border-color:var(--green-mid); }  .cmp-card.green h3  { color:var(--green-dark); }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 1. PORTADA ══ -->
+<section data-background-color="#ffffff" style="text-align:center">
+  <span class="tag tag-gray" style="font-size:0.45em">Programación de Dispositivos Móviles · 01-2026 · Kotlin Multiplatform</span>
+  <h1 style="font-size:1.8em">De Android a todas partes</h1>
+  <p style="font-size:0.65em; color:#888">Convertir nuestro proyecto a Kotlin Multiplatform</p>
+  <p style="font-size:0.55em; color:#bbb; margin-top:1em; font-style:italic">"La misma app, el mismo código, corriendo también en iPhone."</p>
+  <p style="font-size:0.42em; color:#bbb; margin-top:0.8em">Docente: Alvaro García</p>
+</section>
+
+<!-- ══ 2. EL CAMINO RECORRIDO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El camino que recorrimos</span>
+  <h2>Todo lo que ya saben</h2>
+  <p>Empezamos con <ic>Column</ic> y <ic>Row</ic> en Compose, y de ahí construimos toda una arquitectura MVVM. Miren las capas que ya dominan:</p>
+  <div class="flow"><div class="fbox green">Capa de UI<span class="sub">cada pantalla con su ViewModel</span></div></div>
+  <div class="flow"><div class="fbox blue">Repositorios</div><span class="farrow">·</span><div class="fbox blue">API</div><span class="farrow">·</span><div class="fbox blue">Database</div><span class="farrow">·</span><div class="fbox blue">Offline-first</div></div>
+  <div class="flow"><div class="fbox amber">Inyección manual de dependencias<span class="sub">AppProvider</span></div></div>
+  <div class="key-idea key-green">💡 Con todo esto ya pueden construir una app Android robusta de verdad. No es poco: es una arquitectura limpia y completa, de la UI hasta los datos.</div>
+</section>
+
+<!-- ══ 3. EL SIGUIENTE PASO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">El siguiente paso</span>
+  <h2>¿Y por qué quedarnos solo en Android?</h2>
+  <p>Todo lo que aprendieron (separar capas, los repositorios, los ViewModels, no meter lógica en la UI) no tiene por qué vivir solo en Android. ¿Y si les dijera que la misma app, con la misma arquitectura, podría correr también en un iPhone?</p>
+  <div class="key-idea key-purple">💡 Ahí es exactamente donde entra <strong>Kotlin Multiplatform</strong>.</div>
+</section>
+
+<!-- ══ 4. LA IDEA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">La idea</span>
+  <h2>¿Qué es Kotlin Multiplatform?</h2>
+  <p>Escribir Kotlin <strong>una sola vez</strong> y correrlo en varias plataformas: Android, iOS, desktop y web. Lo que compartís es la lógica (datos, red, repositorios, ViewModels), y con <strong>Compose Multiplatform</strong> hasta la UI.</p>
+  <div class="key-idea key-purple">💡 No es reescribir la app para iOS. Es mover su corazón a un lugar común y dejar afuera solo lo poquito que cada plataforma hace distinto.</div>
+</section>
+
+<!-- ══ 5. CÓMO CORRE EN iPHONE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Cómo funciona</span>
+  <h2>¿Y cómo corre en un iPhone?</h2>
+  <p>El mismo código Kotlin se compila a la forma nativa de cada plataforma. Para Android se vuelve bytecode de la JVM; para iOS, Kotlin/Native lo compila con <ic>LLVM</ic> a un binario nativo de verdad — el mismo tipo de binario que produce Swift.</p>
+  <div class="flow"><div class="fbox purple">Tu código Kotlin</div><span class="farrow">→</span><div class="fbox green">Kotlin/JVM<span class="sub">Android</span></div><span class="farrow">→</span><div class="fbox blue">Kotlin/Native<span class="sub">iOS</span></div></div>
+  <div class="key-idea key-blue">💡 No es una capa de traducción ni una máquina virtual encima. Es código nativo en cada lado, así que rinde igual que una app hecha a mano para cada plataforma.</div>
+</section>
+
+<!-- ══ 5b. CÓMO iOS USA EL CÓDIGO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Cómo funciona</span>
+  <h2>Cómo iOS usa tu código Kotlin</h2>
+  <p>El módulo compartido (<ic>shared</ic>) no se queda en Kotlin. Al compilar, se empaqueta como un <strong>framework nativo de Apple</strong> — el mismo formato que tiene cualquier librería de iOS.</p>
+  <div class="flow"><div class="fbox purple">shared<span class="sub">tu código Kotlin</span></div><span class="farrow">→</span><div class="fbox blue">.framework<span class="sub">nativo de Apple</span></div><span class="farrow">→</span><div class="fbox teal">Swift<span class="sub">lo importa</span></div></div>
+  <div class="key-idea key-blue">💡 Swift importa ese framework como cualquier librería: tus clases Kotlin (repositories, ViewModels) aparecen como clases Swift. No hay un puente raro en medio — es interoperabilidad nativa. Por eso <ic>iosApp</ic> es tan poquito código.</div>
+</section>
+
+<!-- ══ 5c. LA UI SE DIBUJA, NO SE TRADUCE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Cómo funciona</span>
+  <h2>La UI no se traduce: se dibuja</h2>
+  <p>¿Y cómo puede una pantalla de Compose aparecer en un iPhone? Compose Multiplatform <strong>no convierte</strong> tus Composables a controles de iOS: trae su propio motor gráfico, <ic>Skia</ic>, y pinta cada pixel él mismo — igual que ya lo hace en Android.</p>
+  <div class="flow"><div class="fbox purple">Tus Composables</div><span class="farrow">→</span><div class="fbox amber">Skia<span class="sub">motor gráfico</span></div><span class="farrow">→</span><div class="fbox green">Mismos pixeles<span class="sub">Android e iOS</span></div></div>
+  <div class="key-idea key-purple">💡 Por eso se ve idéntico en las dos plataformas: no son botones de UIKit, son los mismos que dibuja Android. La contra honesta: no hereda gratis el look &amp; feel nativo de iOS — se ve como tu app de Compose.</div>
+</section>
+
+<!-- ══ 6. QUIÉN LO USA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">No es un experimento</span>
+  <h2>Quién ya lo usa</h2>
+  <p>KMP no es una promesa de laboratorio: empresas enormes lo tienen en producción desde hace años, y Google lo respalda oficialmente.</p>
+  <div class="flow"><div class="fbox green">Netflix</div><div class="fbox green">McDonald's</div><div class="fbox green">Cash App</div><div class="fbox green">Google<span class="sub">lo respalda</span></div></div>
+  <div class="key-idea key-green">💡 Si apps que usan millones de personas confían en esto, no es ningún salto al vacío.</div>
+</section>
+
+<!-- ══ 7. DOS CAMINOS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Dos caminos</span>
+  <h2>¿Cuánto compartimos?</h2>
+  <div class="cmp-grid">
+    <div class="cmp-card teal"><h3>Lógica compartida + UI nativa</h3><p>Compartís datos, red y ViewModels. La UI la hacés nativa en cada lado (Compose en Android, SwiftUI en iOS).</p></div>
+    <div class="cmp-card purple"><h3>Todo compartido</h3><p>Con Compose Multiplatform compartís también las pantallas. Una sola UI para todas las plataformas.</p></div>
+  </div>
+  <p class="foot">Nosotros vamos por el segundo, porque ya tienen toda la UI en Compose.</p>
+</section>
+
+<!-- ══ 8. EL STACK YA ES MULTIPLATAFORMA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">La buena noticia</span>
+  <h2>Casi todo su stack ya es multiplataforma</h2>
+  <div class="flow"><div class="fbox green">Ktor</div><div class="fbox green">Serialization</div><div class="fbox green">Coroutines</div><div class="fbox green">Room</div><div class="fbox green">DataStore</div><div class="fbox green">ViewModel</div><div class="fbox green">Navigation 3</div><div class="fbox green">Coil</div><div class="fbox green">Compose</div></div>
+  <div class="key-idea key-green">💡 Todo lo que usaron este ciclo ya tiene soporte para Kotlin Multiplatform. No hay que cambiar de herramientas: hay que mover el código de lugar.</div>
+</section>
+
+<!-- ══ 9. LA ARQUITECTURA PAGA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Por qué les va a costar poco</span>
+  <h2>La buena arquitectura paga acá</h2>
+  <p>Como nunca metieron lógica en la UI ni ataron las capas de datos a Android, casi todo se mueve <strong>tal cual</strong> a la zona compartida:</p>
+  <ul>
+    <li>Los <ic>model</ic>, los <ic>DTO</ic> y sus mappers.</li>
+    <li>Los <ic>Repository</ic> (interfaz e implementación).</li>
+    <li>Los <ic>ViewModel</ic> con sus <ic>StateFlow</ic>.</li>
+    <li>La configuración de Ktor y la serialización.</li>
+  </ul>
+  <div class="key-idea key-purple">💡 Separar capas no era un capricho académico: es justo lo que hoy les deja saltar de plataforma.</div>
+</section>
+
+<!-- ══ 10. SOURCE SETS ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">El concepto</span>
+  <h2>Los source sets</h2>
+  <p>Un proyecto KMP organiza el código en carpetas según dónde corre:</p>
+  <div class="flow"><div class="fbox purple">commonMain<span class="sub">lo compartido</span></div><div class="fbox green">androidMain<span class="sub">solo Android</span></div><div class="fbox blue">iosMain<span class="sub">solo iOS</span></div></div>
+  <div class="key-idea key-blue">💡 La meta es meter casi todo en <ic>commonMain</ic>, y dejar en <ic>androidMain</ic> e <ic>iosMain</ic> solo lo que cada plataforma hace diferente.</div>
+</section>
+
+<!-- ══ 11. EXPECT / ACTUAL ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">El concepto</span>
+  <h2>expect / actual</h2>
+  <p>Para lo poquito específico de cada plataforma existe <ic>expect/actual</ic>: en común declarás <strong>qué</strong> necesitás, y cada plataforma da su <strong>cómo</strong>.</p>
+<pre><code class="language-kotlin">// commonMain: el contrato
+expect fun platformName(): String
+
+// androidMain: el cómo en Android
+actual fun platformName() = "Android"
+
+// iosMain: el cómo en iOS
+actual fun platformName() = "iOS"</code></pre>
+  <p class="foot">Es como una interfaz, pero a nivel de plataforma.</p>
+</section>
+
+<!-- ══ 12. PROYECTO NUEVO · WIZARD ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Un proyecto nuevo</span>
+  <h2>Así nace un proyecto KMP</h2>
+  <p>No hay que armar nada a mano. El <strong>Kotlin Multiplatform Wizard</strong> (kmp.jetbrains.com) o el plugin de KMP en Android Studio te generan el esqueleto listo.</p>
+  <ul>
+    <li>Elegís las plataformas: Android e iOS.</li>
+    <li>Marcás <strong>"Share UI with Compose Multiplatform"</strong> para compartir también la pantalla.</li>
+    <li>Descargás, abrís en Android Studio, y ya corre.</li>
+  </ul>
+  <div class="key-idea key-purple">💡 En un par de minutos tenés un proyecto que ya arranca en Android y en iPhone, sin escribir una línea.</div>
+</section>
+
+<!-- ══ 13. PROYECTO NUEVO · ESTRUCTURA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Un proyecto nuevo</span>
+  <h2>Cómo se ve por dentro</h2>
+<pre><code class="language-none">shared/            -&gt; el codigo compartido (la libreria KMP)
+  commonMain/      -&gt; el corazon: corre en todas partes
+  androidMain/     -&gt; lo especifico de Android
+  iosMain/         -&gt; lo especifico de iOS
+
+androidApp/        -&gt; la app de Android (punto de entrada)
+iosApp/            -&gt; el proyecto de Xcode (punto de entrada de iOS)</code></pre>
+  <div class="key-idea key-blue">💡 <ic>commonMain</ic> es el corazón: lo que pongas ahí corre en todas partes. <ic>iosApp</ic> es un pequeño envoltorio de Xcode que hospeda la UI.</div>
+</section>
+
+<!-- ══ 14. PROYECTO NUEVO · CORRERLO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Un proyecto nuevo</span>
+  <h2>Correrlo, y el momento mágico</h2>
+  <p>Android corre en cualquier computadora. iOS necesita una <strong>Mac con Xcode</strong>.</p>
+  <div class="key-idea key-green">💡 La demo que vale oro: cambiás un texto en <ic>commonMain</ic>, le das run a Android y a iOS, y el mismo cambio aparece en los dos. Ahí es donde hace clic.</div>
+  <p class="foot">Sin Mac, el target de Desktop sirve igual para la demo: corre en Windows y Linux, y muestra la misma UI compartida.</p>
+</section>
+
+<!-- ══ 15. EL PLAN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">El plan</span>
+  <h2>Los pasos para convertir</h2>
+  <ul>
+    <li><strong>1.</strong> Convertir el módulo a multiplatform.</li>
+    <li><strong>2.</strong> Mover la lógica compartida a <ic>commonMain</ic>.</li>
+    <li><strong>3.</strong> Resolver lo específico con <ic>expect/actual</ic>.</li>
+    <li><strong>4.</strong> Compartir la UI con Compose Multiplatform.</li>
+    <li><strong>5.</strong> Armar el punto de entrada de iOS.</li>
+    <li><strong>6.</strong> Ajustar las dependencias por plataforma.</li>
+  </ul>
+</section>
+
+<!-- ══ 16. PASO 1 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Paso 1</span>
+  <h2>El módulo a multiplatform</h2>
+  <p>Se aplica el plugin de KMP y se declaran los <strong>targets</strong> (Android e iOS), con sus source sets.</p>
+<pre><code class="language-kotlin">kotlin {
+    androidTarget()
+    iosArm64()
+    iosSimulatorArm64()
+
+    sourceSets {
+        commonMain.dependencies { /* lo compartido */ }
+        androidMain.dependencies { /* solo Android */ }
+        iosMain.dependencies { /* solo iOS */ }
+    }
+}</code></pre>
+</section>
+
+<!-- ══ 17. PASO 2 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">Paso 2</span>
+  <h2>La lógica a commonMain</h2>
+  <p>Acá está el grueso del trabajo, y es el más fácil: mover archivos. Los models, DTOs, repositories y ViewModels se van a <ic>commonMain</ic> casi sin tocarlos.</p>
+  <div class="flow"><div class="fbox green">model · dto</div><span class="farrow">→</span><div class="fbox green">repository</div><span class="farrow">→</span><div class="fbox green">viewmodel</div><span class="farrow">→</span><div class="fbox purple">commonMain</div></div>
+  <div class="key-idea key-green">💡 Si algo no compila al moverlo, casi siempre es porque dependía de algo de Android. Eso es justo lo que arregla el paso 3.</div>
+</section>
+
+<!-- ══ 18. PASO 3 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-amber">Paso 3</span>
+  <h2>Lo específico, con expect/actual</h2>
+  <p>En su app, son contadas las cosas que cada plataforma hace distinto:</p>
+  <ul>
+    <li>El <strong>motor de Ktor</strong>: OkHttp en Android, Darwin en iOS.</li>
+    <li>El <strong>builder de Room</strong>: cada plataforma da la ruta del archivo.</li>
+    <li>La <strong>ruta de DataStore</strong>: igual, depende del sistema.</li>
+  </ul>
+<pre><code class="language-kotlin">// commonMain
+expect val httpEngine: HttpClientEngineFactory&lt;*&gt;
+// androidMain
+actual val httpEngine = OkHttp
+// iosMain
+actual val httpEngine = Darwin</code></pre>
+  <p class="foot">El resto del KtorClient (JSON, logging, headers) vive en común sin cambios.</p>
+</section>
+
+<!-- ══ 19. PASO 4 · UI ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Paso 4</span>
+  <h2>La UI, con Compose Multiplatform</h2>
+  <p>Como toda su UI ya está en Compose, las pantallas se mueven a <ic>commonMain</ic>. Material 3, <ic>LazyColumn</ic>, sus Composables: todo funciona igual en iOS.</p>
+  <div class="key-idea key-purple">💡 El mismo <ic>MovieListScreen</ic> que escribieron para Android se dibuja, sin reescribirlo, en un iPhone. Ese es el momento mágico.</div>
+  <p class="foot">Coil 3 y su <ic>AsyncImage</ic> también son multiplataforma, así que los afiches cargan igual.</p>
+</section>
+
+<!-- ══ 20. PASO 4 · NAVEGACIÓN ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-blue">Paso 4 · navegación</span>
+  <h2>Navigation 3, también compartida</h2>
+  <p>Desde Compose Multiplatform 1.10, Navigation 3 corre en todas las plataformas. Su <ic>NavDisplay</ic> y su back stack se mueven a <ic>commonMain</ic> tal cual.</p>
+  <div class="key-idea key-amber">💡 El único ajuste: en iOS, las llaves de ruta (<ic>NavKey</ic>) necesitan <strong>serialización polimórfica</strong> explícita, porque iOS no tiene la reflexión que usa Android. Es registrar cada ruta una vez. Nada del otro mundo.</div>
+</section>
+
+<!-- ══ 21. PASOS 5 Y 6 ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Pasos 5 y 6</span>
+  <h2>iOS y las dependencias</h2>
+  <p>Falta el <strong>punto de entrada de iOS</strong>: una pequeña app en SwiftUI que hospeda la UI de Compose. Es poco código, y casi siempre es el mismo.</p>
+  <p>Y ajustar las <strong>dependencias por source set</strong>: el core en común, el motor por plataforma.</p>
+<pre><code class="language-none">commonMain  →  ktor-client-core, room-runtime, datastore, ...
+androidMain →  ktor-client-okhttp
+iosMain     →  ktor-client-darwin</code></pre>
+</section>
+
+<!-- ══ 22. LO QUE SÍ CUESTA ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-red">Lo honesto</span>
+  <h2>Lo que sí cuesta</h2>
+  <p>No todo es gratis, y vale decirlo:</p>
+  <ul>
+    <li>Para compilar y correr iOS necesitás una <strong>Mac</strong>.</li>
+    <li>Lo que toca <ic>Context</ic>, permisos o recursos de Android hay que <strong>abstraerlo</strong>.</li>
+    <li>iOS es terreno más nuevo: estable, pero con menos ejemplos y alguna aspereza.</li>
+  </ul>
+  <div class="key-idea key-red">💡 Aun así, el grueso del trabajo es mover código, no reescribirlo. Y eso es gracias a cómo lo armaron.</div>
+</section>
+
+<!-- ══ 23. EL PREMIO ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-green">El premio</span>
+  <h2>La moraleja del ciclo</h2>
+  <div class="key-idea key-green">💡 La buena arquitectura no se nota cuando todo va bien. Se nota el día que tenés que cambiar algo grande, como saltar a otra plataforma.</div>
+  <p>Separar capas, usar Repository, no meter lógica en la UI, depender de interfaces y no de Android: cada decisión de este ciclo es la que hoy convierte un proyecto entero a iOS moviendo archivos.</p>
+</section>
+
+<!-- ══ 24. CIERRE ══ -->
+<section data-background-color="#ffffff">
+  <span class="tag tag-purple">Última clase</span>
+  <h2>Hasta acá llegamos</h2>
+  <p>Arrancaron con una pantalla básica. Cierran con una app de arquitectura limpia: offline, con login, con sesión, y lista para correr también en iPhone.</p>
+  <p>Eso no es poco. Gracias por el ciclo.</p>
+  <div class="flow"><div class="fbox purple">Sigan construyendo</div></div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:'slide', transitionSpeed:'fast',
+  controls:true, progress:true, center:true,
+  width:1280, height:720, margin:0.08,
+  minScale:0.5, maxScale:1.4
+});
+</script>
+</body>
+</html>
